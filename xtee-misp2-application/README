@@ -1,0 +1,12 @@
+PostgreSQL andmebaasisüsteemi seaded X-tee portaalide jaoks
+
+Pakett xtee-postgresql valmistab olemasoleva PostgreSQL 8.x 
+andmebaasisüsteemi ette X-tee portaalide jaoks, sh:
+- loob andmebaasi (vaikimisi nimega xteeportal);
+- loob kasutaja misp;
+- loob andmebaasis skeemi misp;
+- loob andmebaasi skeemis misp portaalidele vajaliku andmestruktuuri;
+- impordib OpenLDAP kataloogist LDIF failina eksporditud andmed;
+- sisaldab skripte andmete varundamiseks ja taastamiseks;
+- sisaldab klassifikaatorite andmeid.
+

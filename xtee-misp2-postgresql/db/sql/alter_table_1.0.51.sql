@@ -1,0 +1,3 @@
+DELETE FROM misp2.producer_name USING misp2.producer_name pn2 WHERE producer_name.producer_id = pn2.producer_id AND producer_name.lang = pn2.lang AND producer_name.id < pn2.id; --Delete duplicate producer_name's
+DROP INDEX IF EXISTS misp2.in_producer_name_pid_lang; --Delete existing index if exists (because might exist from version 1.0.39)
+CREATE UNIQUE INDEX in_producer_name_pid_lang ON misp2.producer_name USING btree (producer_id, lang); --Set uniqueness constraint to prevent duplicate producer_name's

@@ -1,0 +1,768 @@
+xtee-misp2-application (2.2.7) stable; urgency=low
+  * Export/import fixes for group queries and topic queries: include protocol
+    in query signature and throw error instead of failing silently.
+ -- Aktors <info@aktors.ee>  Wed, 19 Feb 2020 15:20:00 +0300
+                
+xtee-misp2-application (2.2.6) stable; urgency=low
+  * Display web-app POM version from /version.action.
+  * Make portal and services import backwards compatible with version
+    2.1.44 and fix error on services import.
+  * XForms generator: throw error in case XML schema nesting depth exceeds 20
+    to avoid not stopping in case of circular references in the schema.
+ -- Aktors <info@aktors.ee>  Wed, 12 Feb 2020 12:50:00 +0300
+
+xtee-misp2-application (2.2.5) stable; urgency=low
+  * Fix error on adding new complex service.
+ -- Aktors <info@aktors.ee>  Tue, 04 Feb 2020 14:20:00 +0300
+
+xtee-misp2-application (2.2.4) stable; urgency=low
+  * Fix services export/import issue with multiple federated X-Road instances. 
+  * Fix issue with XML transformer factory by fixing Saxon as the one used.
+  * Reduce log level in DoS interceptor by showing some messages only at TRACE
+    level.
+  * Remove deprecated configuration parameters and bring mobile-ID
+    configuration flow up to date in install script.
+ -- Aktors <info@aktors.ee>  Thu, 23 Jan 2020 00:30:00 +0300
+
+xtee-misp2-application (2.2.3) stable; urgency=low
+  * Handle the case of missing operationId-s from OpenAPI description.
+  * Fix REST listMethods X-Road-Client header issue.
+  * Fix initial "Update and generate forms" functionality.
+  * Set default value for REST query list service code text field and
+    add select-widget in case there is more than one service code.
+ -- Aktors <info@aktors.ee>  Mon, 06 Jan 2020 09:30:00 +0300
+
+xtee-misp2-application (2.2.2) stable; urgency=low
+  * Support for X-Road REST queries
+ -- Aktors <info@aktors.ee>  Mon, 09 Dec 2019 12:45:00 +0300
+
+xtee-misp2-application (2.1.44) stable; urgency=low
+  * Fix display issues for service history view
+ -- Aktors <info@aktors.ee>  Tue, 08 Oct 2019 12:00:00 +0300
+
+xtee-misp2-application (2.1.43) stable; urgency=low
+  * Support for digital signing with Internet Explorer web browser. Improved filter functionality.
+ -- Aktors <info@aktors.ee>  Thu, 20 Jun 2019 23:00:00 +0300
+
+xtee-misp2-application (2.1.42) stable; urgency=low
+  * Support for digital signing with ID-card and Mobile-ID
+ -- Aktors <info@aktors.ee>  Thu, 20 Jun 2019 23:00:00 +0300
+
+xtee-misp2-application (2.1.41) stable; urgency=low
+  * Add represented party (unit) name as form transforming XSL parameter 
+ -- Aktors <info@aktors.ee>  Wed, 13 Feb 2019 12:10:00 +0300 
+
+xtee-misp2-application (2.1.40) stable; urgency=low
+  * Add EULA (End User License Agreement) support to portals 
+ -- Aktors <info@aktors.ee>  Thu, 31 Jan 2019 13:05:00 +0300 
+
+xtee-misp2-application (2.1.39) stable; urgency=low
+  * rework digidoc extracting in DigiDocServlet: don't use digidoc libraries 
+ -- Aktors <info@aktors.ee>  Sat, 08 Dec 2018 13:45:00 +0300
+
+xtee-misp2-application (2.1.38) stable; urgency=low
+  * Fix displaying bug in query search view.
+  * Make queries searchable by X-Road service identifier keywords (in addition to descriptions).
+  * Use portal short name in administrator interface portal listing
+    in case full company name is not given, so portal can still be opened for editing.
+  * Fix installation script Mobile-ID configuration bug
+ -- Aktors <info@aktors.ee>  Sat, 24 Nov 2018 14:00:00 +0300
+
+xtee-misp2-application (2.1.37) stable; urgency=low
+  * Modified form-generator so that nested objects would be listed using appearance=full attribute.
+    This avoids PDF generation error on kir-arendus:paring9 form.  
+    
+ -- Aktors <info@aktors.ee>  Tue, 05 Nov 2018 15:15:00 +0300
+
+xtee-misp2-application (2.1.36) stable; urgency=low
+  * Updated PostgreSQL driver to 42.2.5
+  * Updated Log4j2 to 2.11.1
+  * Updated DigiDoc4j to 2.1.0
+  * Replaced Log4j logging with Log4j2
+  * Replaced JDigiDoc OCSP verification with DigiDoc4j's
+  * Application now supports ESTEID2018 ID-cards
+    
+ -- Aktors <info@aktors.ee>  Tue, 16 Oct 2018 10:25:00 +0300
+
+xtee-misp2-application (2.1.35) stable; urgency=low
+  * Added ID-card support for TEST of ESTEID2018 certificate
+  * Updated OCSP responders for ESTEID-SK 2015, EID-SK 2016, KLASS3-SK 2016, NQ-SK 2016 certificates
+    
+ -- Aktors <info@aktors.ee>  Wed, 19 Sep 2018 13:55:00 +0300
+
+xtee-misp2-application (2.1.34) stable; urgency=low
+  * Dependency updates (Hibernate)
+  * Struts2 framework upgrade from 2.5.16 to 2.5.17
+    
+ -- Aktors <info@aktors.ee>  Tue, 28 Aug 2018 17:00:00 +0300
+
+xtee-misp2-application (2.1.33) stable; urgency=low
+  * Remove representedParty element from X-Road v6 logOnly meta-query
+    
+ -- Aktors <info@aktors.ee>  Fri, 17 Aug 2018 17:15:00 +0300
+
+xtee-misp2-application (2.1.32) stable; urgency=low
+  * Added configuration property 'show_user_portals' enabling
+    portal managers to list users with associated portals,
+    organizations and roles in those organizations.
+    
+ -- Aktors <info@aktors.ee>  Sun, 06 May 2018 23:15:00 +0300
+ 
+xtee-misp2-application (2.1.31) stable; urgency=low
+  * Add functionality to save query log results to CSV file
+  * Add locale-based and global CSV configuration properties for
+    file separator, encoding and date format.
+  * Speed up user query within unit-based uniportal, especially
+    in case query filter parameters have not been given.
+  * Fix time-filter usage inconsistency issue in manager's query-log action
+    that is used to in pagination of the query log table.
+    
+ -- Aktors <info@aktors.ee>  Sun, 15 Apr 2018 22:35:00 +0300
+ 
+xtee-misp2-application (2.1.30) stable; urgency=low
+  * Struts2 framework upgrade from version 2.3.33 to 2.5.16
+  * Spring framework upgrade from 4.3.9 to 4.3.13
+  * Hibernate framework upgrade from 4.1.7 to 4.3.11
+  * Fix bug saving selected producers
+  * Fix bug with timeout JS widget in FireFox
+  * Save all X-Road SOAP messages to soap-messages.log,
+    if 'soap'-appender log-level is info log4j.properties.
+  * Log user query SOAP messages to webapp log file, if log-level is DEBUG.
+  * When creating new portal, do not automatically display X-Road instances.
+    Administrator has to explicitly click a button to
+    download them from security server or default configuration.
+  * Improve format of X-Road v6 producers and services in service export view.
+  * When administrator navigates to query log view, DB query will not run
+    automatically. Instead, a message is shown: "(Search has not yet been run)".
+  * The name of the file generated by portal data export was renamed
+    from 'export.zip' to 'export-[portal name]-[current date].zip'.
+ -- Aktors <info@aktors.ee>  Sun, 08 Apr 2018 19:20:00 +0300
+
+xtee-misp2-application (2.1.29) stable; urgency=low
+  * Service X-Road instance in X-Road v6 request header gets replaced 
+    with matching active service X-Road instance of current portal.
+    Environment identifier substrings 'dev' and 'test' are ignored
+    during X-Road instance matching.
+ -- Aktors <info@aktors.ee>  Thu, 15 Feb 2018 19:20:00 +0300
+
+xtee-misp2-application (2.1.28) stable; urgency=low
+  * Add support for using of multiple X-Road instances in one portal
+  * Add functionality to download federated X-Road instances from security server
+  * Do not automatically run search when user goes on query log page
+ -- Aktors <info@aktors.ee>  Mon, 08 Jan 2018 13:00:00 +0300
+
+xtee-misp2-application (2.1.27) stable; urgency=low
+  * WSDL download and form generation for X-road v6 services without version
+  * Improvements in security server HTTPS connection configuration script:
+    Change /usr/xtee/apache2 directory access rights to 755 and owner to 
+    root:root in case access rights were previously 700 (caused by 'tar').
+    Output cert will have o+r access rights.
+    Output cert file extension is .der in case of X-Road v5 cert archive, 
+    but .cer for X-Road v6 archive.
+ -- Aktors <info@aktors.ee>  Tue, 21 Nov 2017 13:00:00 +0300
+
+xtee-misp2-application (2.1.26) stable; urgency=low
+  * Fix Orbeon form radio button style.
+  * Accept X-Road v6 security server certificate archive (certs.tar.gz) 
+    during HTTPS connection configuration with security server.
+  * Improve security server HTTPS connection configuration script:
+    keystore and truststore passwords are not shown on screen, validity of password 
+    characters is checked and additional information messages are shown.
+ -- Aktors <info@aktors.ee>  Wed, 08 Nov 2017 11:00:00 +0300
+ 
+xtee-misp2-application (2.1.25) stable; urgency=low
+  * Download X-Road v6 WSDL from security server with 'getWsdl' meta-service
+    instead of GET URL.
+ -- Aktors <info@aktors.ee>  Thu, 02 Nov 2017 16:00:00 +0300
+
+xtee-misp2-application (2.1.24) stable; urgency=low
+  * Start Tomcat7 server if it is not running before upgrade.
+  * When creating new portal manager in admin interface,
+    "Set user password" checkbox is checked by default.
+ -- Aktors <info@aktors.ee>  Thu, 19 Oct 2017 15:30:00 +0300
+ 
+xtee-misp2-application (2.1.23) stable; urgency=low
+  * Remove 'Business portal' option when creating a portal
+  * Package installation script does not accept empty DB password from Ubuntu Xenial onwards. 
+ -- Aktors <info@aktors.ee>  Tue, 12 Sep 2017 18:00:00 +0300
+
+xtee-misp2-application (2.1.22) stable; urgency=low
+  * library uprgades
+ -- Aktors <info@aktors.ee>  Thu, 19 Jul 2017 16:45:00 +0300
+ 
+xtee-misp2-application (2.1.21) stable; urgency=low
+  * library uprgades
+ -- Aktors <info@aktors.ee>  Tue, 17 Jul 2017 16:45:00 +0300
+
+xtee-misp2-application (2.1.20) stable; urgency=low
+  * set v6 request service/xroad instance header value according to portal configuration
+ -- Aktors <info@aktors.ee>  Tue, 11 Apr 2017 14:45:00 +0300
+
+xtee-misp2-application (2.1.19) stable; urgency=low
+  * Take elementFormDefault="qualified" into account when generating forms.
+    The change has been provided for 'arireg' X-road v6 services.
+  * Only display confirmation dialog when user is deleting producers 
+    (in service manager role, 'list all producers' view). 
+    Do not display confirmation if new producers are added without deleting 
+    any existing ones.
+  * RR producer response faults are now shown, although the producer 
+    fault format is incorrect (SOAP-ENV:faultString within 'keha')
+ -- Aktors <info@aktors.ee>  Mon, 10 Apr 2017 08:30:00 +0300
+
+xtee-misp2-application (2.1.18) stable; urgency=low
+  * Fix for 'rr' producer form generator issue
+    (multiple schemas defined in the same WSDL with the
+     same targetNamespace)
+ -- Aktors <info@aktors.ee>  Fri, 07 Apr 2017 14:45:00 +0300
+
+xtee-misp2-application (2.1.17) stable; urgency=low
+  * Allow generating X-Forms from X-Road v4 WSDL in X-Road v5 MISP2 portal
+ -- Aktors <info@aktors.ee>  Wed, 05 Apr 2017 21:39:00 +0300
+
+xtee-misp2-application (2.1.16) stable; urgency=low
+  * Struts framework upgrade to ver 2.3.32
+ -- Aktors <info@aktors.ee>  Sat, 18 Mar 2017 13:36:00 +0300
+
+xtee-misp2-application (2.1.15) stable; urgency=low
+  * use digidoc4j in DigidocServlet 
+ -- Aktors <info@aktors.ee>  Thu, 26 Jan 2017 10:16:00 +0300
+
+xtee-misp2-application (2.1.14) stable; urgency=low
+  * issue header field for v6 messages
+ -- Aktors <info@aktors.ee>  Sat, 07 Dec 2016 14:00:32 +0300
+
+xtee-misp2-application (2.1.13) stable; urgency=low
+  * form generator fix for loading XSD-s (skais WSDL)
+  * xforms file upload widget fix + hide load indicator after upload has finished
+ -- Aktors <info@aktors.ee>  Mon, 12 Dec 2016 17:14:32 +0300
+
+xtee-misp2-application (2.1.12) stable; urgency=low
+  * add configuration key 'ui' to facilitate different UI configurations
+  * default to X-Road v6 when creating a new portal
+  * substitute X-Road v6 instance default value 'ee' with 'EE'
+  * replace package description with English translation
+  * display 'Service returned no data' message at appropriate times in X-Road v6 services (form generator fix)
+  * use XML-schema target namespace as service namespace in XForms if that exists (form generator fix)
+ -- Aktors <info@aktors.ee>  Mon, 12 Dec 2016 17:14:32 +0300
+
+xtee-misp2-application (2.1.11) stable; urgency=low
+  * jdigidoc upgrade, use db sequences
+ -- Aktors <info@aktors.ee>  Fri, 19 Aug 2016 15:23:00 +0300
+
+xtee-misp2-application (2.1.10) stable; urgency=low
+  * complexqueries editing error fix
+  * added config parameter ui.show_query_shortname
+ -- Aktors <info@aktors.ee>  Tue, 03 May 2016 14:23:00 +0300
+
+xtee-misp2-application (2.1.9) stable; urgency=low
+  * Struts2 framework upgrade
+  * v6 message change: client/MEMBER -> client/SUBSYSTEM
+ -- Aktors <info@aktors.ee>  Thu, 27 Apr 2016 12:23:00 +0300
+
+xtee-misp2-application (2.1.8) stable; urgency=low
+  * local xsl applying fixed
+ -- Aktors <info@aktors.ee>  Thu, 25 Feb 2016 00:57:00 +0300
+
+xtee-misp2-application (2.1.7) stable; urgency=low
+  * user group's valid date check fixed
+ -- Aktors <info@aktors.ee>  Tue, 16 Feb 2016 00:57:00 +0300
+
+xtee-misp2-application (2.1.6) stable; urgency=low
+  * Import-export functionality is now compatible with older versions of MISP2 (without xroadProtocolVer tag)
+  * Fixed a bug where service list was not displayed for end user in non-universal portal
+  * Form generator workaround for ehis.kma_lopetanud.v1 (do not apply regex constraint if it contains \u or \x)
+  * Fixed installation script issue so that now administrator can enter passwords that contain slashes during installation
+ -- Aktors <info@aktors.ee>  Tue, 15 Oct 2015 18:00:00 +0300
+
+xtee-misp2-application (2.1.5) stable; urgency=low
+  * Implemented WSDL reuse in X-Road v6 portals (service list update and service XForms generation)
+  * X-Road v6 portal subsystem code validation issue fixed
+  * Config file access fixed in unit tests (there was an issue compiling project with Maven without Eclipse)
+  * Added "Add new" button to the top of user group list view
+  * Member class added to X-Road v6 sub-organization import/export
+  * Some source code refactoring (non-functional)
+ -- Aktors <info@aktors.ee>  Tue, 08 Oct 2015 18:00:00 +0300
+ 
+xtee-misp2-application (2.1.4) stable; urgency=low
+  * Removed X-Road v4 portal option. X-Road v5 portal now also supports v4 services.
+  * Complex services are displayed to end user in portals other than 'universal portal'.
+  * Complex service sub-services are displayed in group service access right lists for X-Road v6 portals.
+  * Member class configuration option added to user authorization queries (unit representation, unit check and person representation queries)
+  * Timeouts are added to meta-services and end user X-Road queries, timeouts are configurable in config.cfg.
+  * WSDL download from X-Road v6 security server uses "xRoadInstance" parameter instead of "instance"
+ -- Aktors <info@aktors.ee>  Tue, 15 Sep 2015 18:50:00 +0300
+  
+xtee-misp2-application (2.1.3) stable; urgency=low
+  * Added search field to producer listing view
+  * Display subsystem code for X-Road v6 producers in topic view, groups view and end user view
+  * Fixed file uploading functionality
+  * Fixed saving response message size to query log
+  * Improved portal validation and error messages
+  * Fixed various other minor issues
+ -- Aktors <info@aktors.ee>  Thu, 10 Sep 2015 11:50:00 +0300
+
+xtee-misp2-application (2.1.2) stable; urgency=low
+  * MISP2 internal code refactoring: attachments, logging and X-Road message header manipulation are all done in /mediator servlet
+    Removed synapse logging parameter, /downloadFile and /log servlets.
+  * X-Road meta-service SOAP Faults are displayed in user interface
+  * Fixed few minor bugs (Register user, group service rights)
+ -- Aktors <info@aktors.ee>  Sun, 6 Sep 2015 22:50:00 +0300
+
+xtee-misp2-application (2.1.1) stable; urgency=low
+  * X-Road v6 functionality supplement: loading classfiers dynamically and X-Road service based authentication
+ -- Aktors <info@aktors.ee>  Fri, 11 Aug 2015 12:50:00 +0300
+
+xtee-misp2-application (2.1.0) stable; urgency=low
+  * X-Road v6 support added to MISP2
+ -- Aktors <info@aktors.ee>  Fri, 10 July 2015 12:50:00 +0300
+ 
+xtee-misp2-application (2.0.3) stable; urgency=low
+  * Https configuration script modified, technical services names to be shown to customers
+ -- Aktors <info@aktors.ee>  Tue, 4 Aug 2015 16:54:00 +0300
+
+xtee-misp2-application (2.0.2) stable; urgency=low
+  * Https configuration script added
+ -- Aktors <info@aktors.ee>  Fri, 10 July 2015 12:30:00 +0300
+
+xtee-misp2-application (2.0.1) stable; urgency=low
+  * Add changes from versions 1.3.68 and 1.3.68 to Ubuntu 14.04 branch
+ -- Aktors <info@aktors.ee>  Tue, 8 Apr 2015 18:30:00 +0300
+
+xtee-misp2-application (2.0.0) stable; urgency=low
+  * Migration to Ubuntu 14.04, Tomcat 7 and Apache 2.4
+ -- Aktors <info@aktors.ee>  Tue, 8 Apr 2015 18:30:00 +0300
+
+xtee-misp2-application (1.3.68) stable; urgency=low
+  * Export functionality allows in case of universal portal selecting specific subOrg about which to export data
+  * Import functionality allows importing from universal to unit (subOrgs data will be related to unit's only org)
+ -- Aktors <info@aktors.ee>  Wed,  15 Apr 2015 19:00:00 +0300
+
+xtee-misp2-application (1.3.67) stable; urgency=low
+  * Fixed bug in queries import functionality (only worked through general import, but now works also through usual queries import)
+ -- Aktors <info@aktors.ee>  Fri,  10 Apr 2015 17:00:00 +0300
+ 
+xtee-misp2-application (1.3.66) stable; urgency=low
+  * Realized export/import functionality
+  * Fixed bug resulting in spaces in names of files in queries export zip getting incorrectly converted (would cause error on import)
+  * Producer's queries will be deleted when it is deactivated
+  * On showUser page groups block display save button ahead of list in addition to after
+ -- Aktors <info@aktors.ee>  Mon,  06 Apr 2015 17:00:00 +0300
+
+xtee-misp2-application (1.3.65) stable; urgency=low
+  * Fixed error where extractiong content from old DDOC documents containing X509IssuerName with no namespace threw error 
+ -- Aktors <info@aktors.ee>  Thu,  26 Mar 2015 12:00:00 +0300
+ 
+xtee-misp2-application (1.3.64) stable; urgency=low
+  * xml-difference servlet improved: avoiding some error-situations and ns:entry comparison is insensitive to ns:entry order
+ -- Aktors <info@aktors.ee>  Thu,  25 Mar 2015 12:00:00 +0300
+ 
+xtee-misp2-application (1.3.63) stable; urgency=low
+
+  * BDOC reading support added. The servlet now takes input as base64 instead of XML.
+    This means all XForms using /parseDigiDoc functionality must be altered manually as well
+  * Add file-name parameter to XSL transformation servlet, 
+    also support node-set() extension which is used in e-health v5 XSLs
+  * Administrator web interface opens correctly in case server has no internet connection
+  * SOAP attachment filename in content-disposition header field remains correct if surrounding quotes are used
+  * MISP validates query name/producer uniqueness when user adds or modifies complex query
+  * Enable refreshing service list from WSDL with empty operation titles 
+  * During XForms generation from WSDL skip creating bindings for complex type arrays which do not have inner xsd:elements
+ -- Aktors <info@aktors.ee>  Thu,  12 Feb 2015 12:00:00 +0300
+
+xtee-misp2-application (1.3.62) stable; urgency=low
+
+  * Added option to add script files from config.cfg
+	e.g. 
+	external.script.urls = https://domainname/script.js
+	external.script.urls = https://domainname/script2.js
+ -- Aktors <info@aktors.ee>  Thu,  08 Jan 2015 14:00:00 +0300
+ 
+xtee-misp2-application (1.3.61) stable; urgency=low
+
+  * Translations added for e-mail functionality validation and error messages in XForms 'Save' dialog
+ -- Aktors <info@aktors.ee>  Wed,  17 Sep 2014 14:00:00 +0300
+
+xtee-misp2-application (1.3.60) stable; urgency=low
+
+  * Kasutaja kustutamine on keelatud kui tal on rolle teistes asutustes
+  * Väikesed parandused pääsuõiguste haldurite lehe tekstidele
+ -- Aktors <info@aktors.ee>  Fri,  29 Aug 2014 11:00:00 +0300
+
+xtee-misp2-application (1.3.59) stable; urgency=low
+
+  * Kohendatud ID-kaardiga sisselogimise süsteemi, et see oleks töökindlam ja töötaks Loadbalanceril
+ -- Aktors <info@aktors.ee>  Tue,  12 Aug 2014 16:30:00 +0300
+
+xtee-misp2-application (1.3.58) stable; urgency=low
+
+  * Juhul kui parooliga sisselogimine on konfiguratsioonifailis lubatud, siis saab kasutaja parooli muuta kasutaja seadete ja kasutaja andmete muutmise vormidelt
+  * Eraldatud kasutaja parool ja ülevõtmiskood eraldi väljadesse ja realiseeritud soolaga krüpteerimine mõlemale
+  * Väikesed parandused XFormsi generatori XSL failidele
+  * Parandused administraatoriliidese alt kasutaja/halduri salvestamise valideerimisele
+  * Kommentaarid konfiguratsioonifaili X-Road parameetritele
+ -- Aktors <info@aktors.ee>  Thu,  07 Aug 2014 14:00:00 +0300
+
+xtee-misp2-application (1.3.57) stable; urgency=low
+
+  * Välditakse probleemi, kus Orbeon genereeris tühja PDFi teatud HTTP päiseparameetrite korral
+  * Lisatud pealkiri kasutaja muutmise vormi kasutajarühmade kehtivuse lõppkuupäevadele
+  * Enam ei kirjutata mõttetut veateadet logisse i18n property puudumise kohta andmekogude nimekirja kuvamisel
+ -- Aktors <info@aktors.ee>  Fri,  13 June 2014 14:00:00 +0300
+
+xtee-misp2-application (1.3.56) stable; urgency=low
+
+  * Rakenduse keelte ja riikide hulka lisatakse süsteemi vaikelokaali oma vaid siis kui ühtegi sobivat pole vastavas konfiguratsiooniparameetris seatud. Seatud sobivad vaikeväärtused nii eesti kui rahvusvahelisele versioonile
+  * Teenuste ajaloo näitamisel arvestatakse aktiivset üksust
+  * Parandatud Orbeoni XFormsi poolt mailiga saadetud tühja PDFi probleem
+  * Serveri vastuspäringute raamitavuse turvarisk clickjackingu läbi kõrvaldatud läbi HTTP vastustele vastava päise lisamise
+  * LDAP settingud lisatud konfiguratsiooniparameetrite hulka
+ -- Aktors <info@aktors.ee>  Wed,  28 May 2014 18:00:00 +0300
+
+xtee-misp2-application (1.3.55) stable; urgency=low
+
+  * Parandatud probleem seoses sessiooni aegumisest teadvustavale lehele suunamisega mis juhtus siis kui initsialiseerimata sessiooni korral üritati minna muule lehele kui sisselogimisleht
+  * Sessiooni aegumisest teadvustav leht kasutab süsteemi vaikelokaali, mitte brauseris seatud eelistatuimat keelt (analoogne ülejäänud rakendusega)
+  * Teenusevormidele lisatakse kerimisriba kui vormi sisu on laiem kui vorm
+  * Kõigi päringute (väljaarvatud Ajax) vahemällu salvestamine on edaspidi keelatud turvalisuse huvides
+ -- Aktors <info@aktors.ee>  Fri,  28 Mar 2014 13:30:00 +0300
+
+xtee-misp2-application (1.3.54) stable; urgency=low
+
+  * Rakenduse installimise käigus küsitakse, kas soovitakse installida rahvusvahelise või eesti versioonina. Sellele vastavalt seatakse paari asjakohase konfiguratsiooniparameetri väärtus
+  * Rakenduse vaikekeel ja vaikeriik (kasutajale määratav) võetakse süsteemi lokaalist. See tähendab, et süsteemi lokaal peab olema adekvaatselt seatud
+  * OCSP kontroll lisatud ID-kaardiga autentimisele. Kontrolli saab sisse lülitada auth.IDCard.OCSPCheck konfiguratsiooniparameetriga
+  * Eemaldatud funktsionaalsus tokeniga HTTP päringute autentimiseks (auth.token), kuna CSRF süsteem sooritab sama ülesannet paremini ja puhtamalt
+  * Refaktoreeritud kasutajale riigi määramise süsteem, mille tulemuseks on see, et edaspidi määratakse määratavad riigid "countries" konfiguratsiooniparameetriga ning senised parameetrid on eemaldatud
+  * Eemaldatud küsimus rakenduse nime kohta installimisel/uuendamisel
+ -- Aktors <info@aktors.ee>  Thu,  13 Mar 2014 13:00:00 +0300
+
+xtee-misp2-application (1.3.53) stable; urgency=low
+
+  * Täiendatud CSRF kaitset
+ -- Aktors <info@aktors.ee>  Thu,  06 Mar 2014 11:04:15 +0300
+
+xtee-misp2-application (1.3.52) stable; urgency=low
+
+  * Orbeon inspectoris kopeerimine ja layout parandatud
+  * Orbeon 4.4-le üleminekul PDF genereerimise vea parandus
+  * Readonly väljade taust xformsidel on hall
+ -- Aktors <info@aktors.ee>  Wed,  26 Feb 2014 16:32:00 +0300
+
+xtee-misp2-application (1.3.51) stable; urgency=low
+
+  * Mobiil-ID töötab jälle (CSRF kaitse rakendamisel tehtud vea tõttu vahepeal ei töötanud)
+  * Kliendi config.cfg ja logj.properties failid sünkroniseeritakse rakenduse omadega, ehk nendes olevad propertied seatakse samasse järjekorda ja lisatakse puuduvad
+ -- Aktors <info@aktors.ee>  Wed,  26 Feb 2014 12:32:30 +0300
+
+xtee-misp2-application (1.3.50) stable; urgency=low
+
+  * XForms-dele XSLi rakendamisel asendatatakse XRoad (xrd) nimeruum config.cfg failis leiduva xrd.namespace property väärtusega 
+  * Parandatud sessiooni aegumise pikendamise nupu poolt serverile saadetud päringu mitte kohale jõudmine IE korral
+  * Parandatud teemale lubatud teenuste puhul esinenud probleem seoses lubatud teenuste valiku mittesäilimisega valideerimisvea korral ja rakendatud tollele valikule kategoriseeritud tabeli funktsionaalsus
+  * Paigutatud originaal log4j.properties faili propertiesid ümber, nii et need propertid, mis sätivad logimise taset, on ülevalpool ning nende logimise tase seatud WARN peale
+  * Eemaldatud viited Suurbritanniale originaal config.cfg failist
+ -- Aktors <info@aktors.ee>  Fri,  07 Feb 2014 11:37:30 +0300
+
+xtee-misp2-application (1.3.49) stable; urgency=low
+
+  * Parandatud vaikelokaali kättesaamise funktsionaalsust, ehk nüüd ei ole enam võimalik, et kogemata konfifailis määratud vaikelokaali asemel süsteemi oma võetakse
+  * Seadistatud CSRF kaitse enamikule rakendusest ja enamiku serveris muudatusi tegevate päringute puhul pole enam võimalik GET-i kasutada (ainult POST jäänud)
+  * Parandatud potentsiaalne sessiooni aegumise teate täpitähtede probleem
+  * Tomcati poolt cachitud jsp-d kustutatakse automaatselt installi/upgradei käigus, sest millegipärast Tomcat ei rekompileeri neid hetkel
+ -- Aktors <info@aktors.ee>  Mon,  03 Feb 2014 15:51:00 +0300
+
+xtee-misp2-application (1.3.48) stable; urgency=low
+
+  * install-misp2-application.sh failis väikesed parandused, et install õnnestuks
+ -- Aktors <info@aktors.ee>  Mon,  28 Jan 2014 14:52:00 +0300
+
+xtee-misp2-application (1.3.47) stable; urgency=low
+
+  * Kindlustatud, et valideerimine töötab rakenduses (validation xml-de cdoctype-i uuendus)
+  * Refaktoreeritud keeltesüsteem ja seeläbi on nüüd võimalik config faili abil määrata, mis keeled lubatud on
+  * On võimalik määrata ID-kaardiga sisselogimise URL config faili abil
+ -- Aktors <info@aktors.ee>  Thu,  23 Jan 2014 13:58:20 +0300
+
+xtee-misp2-application (1.3.46) stable; urgency=low
+
+  * Sessiooni aegumise hoiatamisaeg on nüüdsest konfigureeritud ajana enne sessiooni aegumist, mitte ajana peale mitteaktiivsuse algust
+  * Xform päringute lehel tegutsemine lükkab timeouti edasi analoogselt ülejäänud rakendusega
+ -- Aktors <info@aktors.ee>  Thu,  19 Dec 2013 14:24:56 +0300
+
+xtee-misp2-application (1.3.45) stable; urgency=low
+
+  * kasutusjuhend taiendatud vastavalt versioonis 1.3.44 tehtud muudatustele (vanade teenuste eemaldamine)
+ -- Aktors <info@aktors.ee>  Thu,  21 Mar 2013 20:00:00 +0300
+
+xtee-misp2-application (1.3.44) stable; urgency=low
+
+  * lisatud voimalus teenuste loetelu uuendamise jargselt eemaldada uues teenuste loetelus puuduvad vanad teenused
+ -- Aktors <info@aktors.ee>  Wed,  13 Mar 2013 13:00:00 +0300
+
+xtee-misp2-application (1.3.43) stable; urgency=low
+
+  * portaali salvestamise parandus; kasutaja registreerimise vea parandus universaalses portaalis
+ -- Aktors <info@aktors.ee>  Tue,  05 Mar 2013 15:00:00 +0300
+
+xtee-misp2-application (1.3.42) stable; urgency=low
+
+  * Andmekogude ja nende teenuste eksport/import
+ -- Aktors <info@aktors.ee>  Thu,  14 Feb 2013 12:00:00 +0300
+
+xtee-misp2-application (1.3.41) stable; urgency=low
+
+  * vaikimisi x-road.ee nimeruumi kasutamine; uuendatud Spring ja Hibernate jar-id
+ -- Aktors <info@aktors.ee>  Mon,  03 Dec 2012 17:00:00 +0300
+
+xtee-misp2-application (1.3.40) stable; urgency=low
+
+  * redirect loop-i parandus, kui kasutajal ei ole uhtegi portaaliga seost; teksti trim WSDLParser-s; XForms CSS; uuendatud kasutusjuhendid; 
+ -- Aktors <info@aktors.ee>  Mon,  19 Nov 2012 16:00:00 +0300
+
+xtee-misp2-application (1.3.39) stable; urgency=low
+
+  * config.cfg-st eemaldatud DOS realopud (^M);  klassifikaatorite vaatamine on keelatud kui ei ole valitud portaal; xrd.namespace ei ole enam static;
+ -- Aktors <info@aktors.ee>  Tue,  13 Nov 2012 13:00:00 +0300
+
+xtee-misp2-application (1.3.38) stable; urgency=low
+
+  * xtee.logOnly metateenuse toetus; portaali valiku fix; lisatud konfig parameeter xrd.namespace;
+ -- Aktors <info@aktors.ee>  Tue,  06 Nov 2012 13:00:00 +0300
+
+xtee-misp2-application (1.3.37) stable; urgency=low
+
+  * vaikimisi portaal on viimane kasutusel olnud portaal; portaalide jarjekord; XForms URL-d on taidetud;
+ -- Aktors <info@aktors.ee>  Mon,  05 Nov 2012 17:00:00 +0300
+
+xtee-misp2-application (1.3.36) stable; urgency=low
+
+  * xsd:hexBinary toetus;
+ -- Aktors <info@aktors.ee>  Fri,  26 Oct 2012 09:00:00 +0300
+
+xtee-misp2-application (1.3.35) stable; urgency=low
+
+  * Orbeon Inspector bugi IE/FF-s; 
+ -- Aktors <info@aktors.ee>  Mon,  22 Oct 2012 16:00:00 +0300
+
+xtee-misp2-application (1.3.34) stable; urgency=low
+
+  * CSS fix-d, rekursiivse andmetyypi toetus wsdl2xforms generaatoris, uuendatud gruppide haldamise liides
+ -- Aktors <info@aktors.ee>  Fri,  12 Oct 2012 12:00:00 +0300
+
+xtee-misp2-application (1.3.33) stable; urgency=low
+
+  * Orbeon 4.0 milestone toetus: PDF, logimine ja maili saatmine. On uuendatud JQuery library-d
+ -- Aktors <info@aktors.ee>  Thu,  04 Oct 2012 13:00:00 +0300
+
+xtee-misp2-application (1.3.32) stable; urgency=low
+
+  * rakenduse war koos orbeon 3.9 toetusega
+ -- Aktors <info@aktors.ee>  Fri,  28 Sep 2012 08:00:00 +0300
+
+xtee-misp2-application (1.3.31) stable; urgency=low
+
+  * parandatud config.cfg faili taastamine rakenduse upgrade-misel
+ -- Aktors <info@aktors.ee>  Mon,  30 July 2012 14:00:00 +0300
+
+xtee-misp2-application (1.3.30) stable; urgency=low
+
+  * Mobiil-ID toetus, teade sessiooni aegumisel, kasutusjuhendid PDF kujul, tokeni support, perfomance fix-id
+ -- Aktors <info@aktors.ee>  Fri,  27 July 2012 15:00:00 +0300
+
+xtee-misp2-application (1.3.29) stable; urgency=low
+
+  * Pääsuõiguste haldurile lisatud menüü punkt "Teenuste ajalugu";  Teemade ja gruppide päringute nimekirjad sorteeritud kirjelduse järgi; parandatud universaalse portaali globaalsete gruppide teenuste valik;
+ -- Aktors <info@aktors.ee>  Thu,  24 May 2012 15:00:00 +0300
+
+xtee-misp2-application (1.3.28) stable; urgency=low
+
+  * teenuste nimetuste sorteerimine tähestiku järgi, Teenuste haldurile lisatud menüü punkt "Teemad", kasutajagrupi päringuõiguste gruppeerimine ühe andmekogu pealkirja all 
+ -- Aktors <info@aktors.ee>  Mon,  21 May 2012 09:00:00 +0300
+
+xtee-misp2-application (1.3.27) stable; urgency=low
+
+  * SSLID kasutamine on konfitav; 
+ -- Aktors <info@aktors.ee>  Fri,  27 Apr 2012 14:00:00 +0300
+
+xtee-misp2-application (1.3.26) stable; urgency=low
+
+  * tokeni esialgne support; orbeon-functions.js-le on lisatud funktsioon overlay layeri jaoks
+ -- Aktors <info@aktors.ee>  Sun,  22 Apr 2012 10:00:00 +0300
+
+xtee-misp2-application (1.3.25) stable; urgency=low
+
+  * filter PDF-i genereerimise jaoks ja logimine servletiga; SSL sessioonide muudatused; lisatud SMTP hosti ja maili konfimine uue rakenduse installi ajal;
+ -- Aktors <info@aktors.ee>  Thu,  12 Apr 2012 10:00:00 +0300
+
+xtee-misp2-application (1.3.24) stable; urgency=low
+
+  * CSS muudatused; jsoup jar-i uuendatud versioon
+ -- Aktors <info@aktors.ee>  Fri,  06 Apr 2012 15:00:00 +0300
+
+xtee-misp2-application (1.3.23) stable; urgency=low
+
+  * organisatsioonide valideerimine universaaalportaalides; PDF-s on lisatud header ja footer; Orbeoni veateated on asendatud MISP2 dialog-ga
+ -- Aktors <info@aktors.ee>  Fri,  30 Mar 2012 13:00:00 +0300
+
+xtee-misp2-application (1.3.22) stable; urgency=low
+
+  * Struts jar-de viimased versioonid; arendatud sessioonide haldus; veateated lisatakse eraldi tabelisse;
+ -- Aktors <info@aktors.ee>  Tue,  20 Mar 2012 09:00:00 +0300
+
+xtee-misp2-application (1.3.21) stable; urgency=low
+
+  * parandatud kokkusobivus IE 7-8; WSDLi parsimisel <wsdl:notes> sisu salvestatakse teenuse kirjeldusena (tooltip-na). Lisatud dependency orbeon paketist.
+ -- Aktors <info@aktors.ee>  Tue,  28 Feb 2012 14:00:15 +0300
+
+xtee-misp2-application (1.3.20) stable; urgency=low
+
+  * parandatud veateadete väljastamine teenuste värskendamisel WSDL-st; download ja upload servlet-d on ühendatud omavahel (DownloadServlet.java-s); misp2.internal.url > http://localhost
+ -- Aktors <info@aktors.ee>  Thu,  23 Feb 2012 14:00:15 +0300
+
+xtee-misp2-application (1.3.19) stable; urgency=low
+
+  * JDigiDoc library uuendatud; teenuse vastuse PDF-i krüpteerimine toimib vastavalt viimase DigiDoc kliendi versioonile
+ -- Aktors <info@aktors.ee>  Tue,  21 Feb 2012 11:00:15 +0300
+
+xtee-misp2-application (1.3.18) stable; urgency=low
+
+  * HTTPS HTTPS NullVerifier servlet-de jaoks; muudetud XForms tabelite paigutus;
+ -- Aktors <info@aktors.ee>  Thu,  16 Feb 2012 09:00:15 +0300
+
+xtee-misp2-application (1.3.17) stable; urgency=low
+
+  * arendaja vaates saab lisada andmekogu käsitsi; halduri teenuste nimekirjas teenuse süsteemne nimi ja kirjeldus on eraldatud;
+ -- Aktors <info@aktors.ee>  Wed,  15 Feb 2012 11:00:15 +0300
+
+xtee-misp2-application (1.3.16) stable; urgency=low
+
+  * parandatud HTTPS ühendus v4 turvaserveriga; portaalide nimekiri omab rohkem informatsiooni;
+ -- Aktors <info@aktors.ee>  Tue,  07 Feb 2012 12:00:15 +0300
+
+xtee-misp2-application (1.3.15) stable; urgency=low
+
+  * CSS muudatused (PDF ja XML nupud)
+ -- Aktors <info@aktors.ee>  Fri,  27 Jan 2012 09:00:15 +0300
+
+xtee-misp2-application (1.3.14) stable; urgency=low
+
+  * uued parameetrid logimisel (sooritamise aeg); uuendatud hibernate ja spring librad
+ -- Aktors <info@aktors.ee>  Mon,  23 Jan 2012 11:00:15 +0300
+
+xtee-misp2-application (1.3.13) stable; urgency=low
+
+  * PDFi genereerimine Orbeoni piltidega; uus konfi parameter misp2.internal.url Orbeoni HTTPS kasutamiseks; CSS muudatused (select kastide laius);
+ -- Aktors <info@aktors.ee>  Tue,  17 Jan 2012 11:00:15 +0300
+
+xtee-misp2-application (1.3.12) stable; urgency=low
+
+  * lisatakse SOAP:Header <xtee:ametnik> v4 meta-teenuste korral
+ -- Aktors <info@aktors.ee>  Tue,  20 Dec 2011 17:00:15 +0300
+
+xtee-misp2-application (1.3.11) stable; urgency=low
+
+  * teemade haldus ilma meta-teenusteta; abitekstid jquery-vtip abil; 
+ -- Aktors <info@aktors.ee>  Tue,  20 Dec 2011 12:00:15 +0300
+
+xtee-misp2-application (1.3.10) stable; urgency=low
+
+  * uus rakenduse war fail (toimiku headeri valik, parem topicute haldamine) (NB! installida koos xtee-misp2-postgresql paketiga ver. 1.0.16)
+ -- Aktors <info@aktors.ee>  Wed,  30 Nov 2011 15:00:15 +0300
+
+xtee-misp2-application (1.3.9) stable; urgency=low
+
+  * uus rakenduse war fail (NB! installida koos xtee-misp2-postgresql paketiga ver. 1.0.15)
+ -- Aktors <info@aktors.ee>  Thu,  17 Nov 2011 18:00:15 +0300
+
+xtee-misp2-application (1.3.8) stable; urgency=low
+
+  * admini lisamine command line'lt; uus rakenduse war fail
+ -- Aktors <info@aktors.ee>  Tue,  06 Sep 2011 18:00:15 +0300
+
+xtee-misp2-application (1.3.7) stable; urgency=low
+
+  * bpel parameter false by default
+ -- Aktors <info@aktors.ee>  Thu,  11 Aug 2011 11:00:15 +0300
+
+xtee-misp2-application (1.3.6) stable; urgency=low
+
+  * 08.08 application war file (unsorted topic, pdf mail sending within the same window, complex services in universal portal with unitIsConsumer=true) 
+ -- Aktors <info@aktors.ee>  Mon,  08 Aug 2011 15:00:15 +0300
+
+xtee-misp2-application (1.3.5) stable; urgency=low
+
+  * 04.08 application war file
+ -- Aktors <info@aktors.ee>  Wed,  03 Aug 2011 11:00:15 +0300
+
+xtee-misp2-application (1.3.4) stable; urgency=low
+
+  * install script fix
+ -- Aktors <info@aktors.ee>  Tue,  10 May 2011 15:40:15 +0300
+
+xtee-misp2-application (1.3.3) stable; urgency=low
+
+  * complex query fixes
+ -- Aktors <info@aktors.ee>  Tue,  03 May 2011 19:40:15 +0300
+
+xtee-misp2-application (1.3.2) stable; urgency=low
+
+  * complex query fixes + autogenerated mail
+ -- Aktors <info@aktors.ee>  Tue,  03 May 2011 19:40:15 +0300
+
+xtee-misp2-application (1.3.1) stable; urgency=low
+
+  * admin interface fix
+ -- Aktors <info@aktors.ee>  Tue,  03 May 2011 09:40:15 +0300
+
+xtee-misp2-application (1.3.0) stable; urgency=low
+
+  * beeta release 
+ -- Mihhail <info@aktors.ee>  Wed,  23 Mar 2011 15:20:15 +0300
+
+xtee-misp2-application (1.2.2) stable; urgency=low
+
+  * amd64 proov
+ -- Mihhail <info@aktors.ee>  Thu,  21 Jan 2011 15:23:15 +0300
+
+xtee-misp2-application (1.2.1) stable; urgency=low
+
+  * xrd.version muudetud vaikimisi 4
+ -- Mihhail <info@aktors.ee>  Thu,  20 Jan 2011 15:23:15 +0300
+
+xtee-misp2-application (1.2.0) stable; urgency=low
+
+  * 1.2.0 release: sertifikaadid, sisselogimine, teenuste haldus
+ -- Mihhail <info@aktors.ee>  Mon,  17 Jan 2011 12:20:12 +0300
+
+xtee-misp2-application (1.1.1) stable; urgency=low
+
+  * applicationContext ja struts.xml --> config.cfg
+ -- Mihhail <info@aktors.ee>  Wed,  22 Dec 2010 12:20:12 +0300
+
+xtee-misp2-application (1.1.0) stable; urgency=low
+
+  * war fail seisuga 17.11.10: mitu portaali, kovmispi arendamine
+ -- Mihhail <info@aktors.ee>  Wed,  17 Nov 2010 12:20:12 +0300
+
+xtee-misp2-application (1.0.3) stable; urgency=low
+
+  * applicationContext.xml and struts.xml jagatud kaheks failideks, xtee-misp2-postgresql dependency eemaldatud, war fail seisuga 16.11.10
+ -- Mihhail <info@aktors.ee>  Tue,  16 Nov 2010 11:21:12 +0300
+ 
+xtee-misp2-application (1.0.2) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks, lisatud struts.xml, dependency muudetud xtee-misp2-postgresql, muudetud applicationContext.xml
+ -- Mihhail <info@aktors.ee>  Mon,  09 Nov 2010 09:21:12 +0300
+
+xtee-misp2-application (1.0.1) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks, applicationContext.xml muudetud
+ -- Mihhail <info@aktors.ee>  Mon,  01 Nov 2010 09:21:12 +0300
+
+xtee-misp2-application (1.0.0) stable; urgency=low
+
+  * esimene versioon testimiseks
+ -- Mihhail <info@aktors.ee>  Wed,  28 Oct 2010 09:21:12 +0300
+
+
+

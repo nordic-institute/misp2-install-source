@@ -1,0 +1,11 @@
+Source: xtee-misp2-base
+Section: unknown
+Priority: optional
+Maintainer: OÜ Aktors <info@aktors.ee>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: xtee-misp2-base
+Architecture: amd64
+Depends: apache2, libapache2-mod-jk, perl, openjdk-8-jre-headless, tomcat8
+Description: Apache Tomcat and Apache2 interconnectivity package for MISP2 application use

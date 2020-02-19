@@ -1,0 +1,236 @@
+xtee-misp2-base (2.0.12) stable; urgency=low
+
+  * Change URLs of ESTEID root certificates downloaded from sk.ee.
+  * Check if downloaded PEM files from sk.ee are in correct format.
+  * Add info messages, error checks and rework logic in updatecrl.sh.
+ -- Aktors <info@aktors.ee>  Fri, 17 Jan 2020 23:00:00 +0300
+
+xtee-misp2-base (2.0.11) stable; urgency=low
+
+  * new parameter added to ssl conf:  SSLCARevocationCheck leaf
+  * esteid 2018 CRL file added to CRL update script
+ -- Aktors <info@aktors.ee>  Thu, 27 Jan 2019 18:05:00 +0300
+
+xtee-misp2-base (2.0.10) stable; urgency=low
+
+  * Added EE-GovCA2018 and esteid2018 certificates
+ -- Aktors <info@aktors.ee>  Thu, 18 Oct 2018 10:55:00 +0300
+
+xtee-misp2-base (2.0.9) stable; urgency=low
+
+  * Change httpsd.key file access rights to -r--------
+  * Ask user before replacing Apache2 configuration http.conf file with the default
+  * Disable Apache2 log traceback in default configuration
+ -- Aktors <info@aktors.ee>  Wed, 23 Aug 2017 09:00:00 +0300
+
+xtee-misp2-base (2.0.8) stable; urgency=low
+
+  * removed old certs
+  * added install script parameter for skipping prompt questions on loading certificates
+ -- Aktors <info@aktors.ee>  Thu, 01 Dec 2016 07:47:54 +0300
+ 
+xtee-misp2-base (2.0.7) stable; urgency=low
+
+  * removed esteid2007.crl
+ -- Aktors <info@aktors.ee>  Fri, 19 Aug 2016 15:30:00 +0300
+ 
+xtee-misp2-base (2.0.6) stable; urgency=low
+
+  * added DH prameters to web server certificate
+ -- Aktors <info@aktors.ee>  Thu, 27 Apr 2016 15:30:00 +0300
+
+xtee-misp2-base (2.0.5) stable; urgency=low
+
+  * added  ESTEID-SK 2015 certificate
+ -- Aktors <info@aktors.ee>  Thu, 28 Jan 2015 16:30:00 +0300
+
+xtee-misp2-base (2.0.4) stable; urgency=low
+
+  * cleanXFormsDir.sh script only applies to files
+ -- Aktors <info@aktors.ee>  Tue, 20 Oct 2015 10:30:00 +0300
+ 
+xtee-misp2-base (2.0.3) stable; urgency=low
+
+  * Programmatic query section (for port 4443) of ssl.conf changed
+ -- Aktors <info@aktors.ee>  Tue, 27 July 2015 18:30:00 +0300
+ 
+xtee-misp2-base (2.0.2) stable; urgency=low
+
+  * Always generate certificates if these do not exist, do not ask from user as was done previously
+ -- Aktors <info@aktors.ee>  Tue, 27 July 2015 18:30:00 +0300
+
+xtee-misp2-base (2.0.1) stable; urgency=low
+
+  * Add custom memory allocation parameters to the end of /etc/default/tomcat7
+ -- Aktors <info@aktors.ee>  Tue, 18 May 2015 18:30:00 +0300
+ 
+xtee-misp2-base (2.0.0) stable; urgency=low
+
+  * Migration to Ubuntu 14.04
+  * Updated configuration to Tomcat 7 and Apache 2.4
+ -- Aktors <info@aktors.ee>  Tue, 16 Feb 2015 18:30:00 +0300
+ 
+xtee-misp2-base (1.0.31) stable; urgency=low
+
+  * server.xml uuendatud port="8009" URIEncoding="UTF-8"
+ -- Aktors <info@aktors.ee>  Mon,  23 Feb 2015 18:31:00 +0300
+
+xtee-misp2-base (1.0.30) stable; urgency=low
+
+  * SOAPAction päringupäise sättimine
+  * XFormside puhastus xforms-jsp alt
+ -- Aktors <info@aktors.ee>  Wed,  28 May 2014 18:00:00 +0300
+
+xtee-misp2-base (1.0.29) stable; urgency=low
+
+  * apache2 sertifikaatidele sümboolsete linkide loomise käsk "c_rehash" käivitatakse edaspidi igal juhul, sõltumata sellest, kas soovitakse SK sertifikaate uuendada (kuna SK sertifikaadid pole ainsad võimalikud sertifikaadid)
+ -- Aktors <info@aktors.ee>  Fri,  28 Mar 2014 13:30:00 +0300
+
+xtee-misp2-base (1.0.28) stable; urgency=low
+
+  * Sessiooni aegumise hoiatamisaeg on nüüdsest konfigureeritud ajana enne sessiooni aegumist, mitte ajana peale mitteaktiivsuse algust
+  * Xform päringute lehel tegutsemine lükkab timeouti edasi analoogselt ülejäänud rakendusega
+ -- Aktors <info@aktors.ee>  Thu,  19 Dec 2013 14:24:56 +0300
+
+xtee-misp2-base (1.0.27) stable; urgency=low
+
+  * uuendatud XForms-i crontab; classifier servlet on lubatud https protokolliga;
+ -- Aktors <info@aktors.ee>  Tue,  13 Nov 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.26) stable; urgency=low
+
+  * parandatud crontab-i kasutamine
+ -- Aktors <info@aktors.ee>  Fri,  26 Oct 2012 11:00:00 +0300
+
+xtee-misp2-base (1.0.25) stable; urgency=low
+
+  * parandatud Tomcat default parameetrite muutmine (xms ja xmx)
+ -- Aktors <info@aktors.ee>  Fri,  05 Oct 2012 09:00:00 +0300
+
+xtee-misp2-base (1.0.24) stable; urgency=low
+
+  * Orbeoni dynamic failide kattesaamine on ajutiselt lubatud pordist 443
+ -- Aktors <info@aktors.ee>  Thu,  04 Oct 2012 12:00:00 +0300
+
+xtee-misp2-base (1.0.23) stable; urgency=low
+
+  * cronjob XForms kataloogi tyhjendamiseks
+ -- Aktors <info@aktors.ee>  Wed,  03 Sep 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.22) stable; urgency=low
+
+  * muudetud apache2 SSL konfiguratsiooni: rakenduse esileht on HTTP, teised lehed HTTPS;
+ -- Aktors <info@aktors.ee>  Wed,  06 Jun 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.21) stable; urgency=low
+
+  * muudetud ssl konf
+ -- Aktors <info@aktors.ee>  Fri,  27 Apr 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.20) stable; urgency=low
+
+  * lisatud logimise servlet ja Orbeoni failid /dynamic/ kataloogist; lisatud KeepAliveTimeout parameeter ja JK sessiooni parandused;
+ -- Aktors <info@aktors.ee>  Thu,  12 Apr 2012 11:00:00 +0300
+
+xtee-misp2-base (1.0.19) stable; urgency=low
+
+  * lisatud digidoc-i parsimise servlet
+ -- Aktors <info@aktors.ee>  Fri,  30 Mar 2012 13:00:00 +0300
+
+xtee-misp2-base (1.0.18) stable; urgency=low
+
+  * lisatud echo servlet; admin liidese konfiguratsioon säilib peale upgrade-i
+ -- Aktors <info@aktors.ee>  Wed,  29 Feb 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.17) stable; urgency=low
+
+  * keelatud 8080 pordi kasutamine
+ -- Aktors <info@aktors.ee>  Thu,  23 Feb 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.16) stable; urgency=low
+
+  * Parandatud tühistusnimekirja uuendamise skript
+ -- Aktors <info@aktors.ee>  Mon,  20 Feb 2012 09:00:00 +0300
+
+xtee-misp2-base (1.0.15) stable; urgency=low
+
+  * Tomcati redirect / -> /misp2; warning apache restartimisel ajp workeri 4443 pordi kohta on läinud
+ -- Aktors <info@aktors.ee>  Tue,  14 Feb 2012 10:00:00 +0300
+
+xtee-misp2-base (1.0.14) stable; urgency=low
+
+  * cron skript CRL update'i jaoks 
+ -- Aktors <info@aktors.ee>  Mon,  13 Feb 2012 10:00:00 +0300
+
+xtee-misp2-base (1.0.13) stable; urgency=low
+
+  * ssl konfis on seadistatud port 4443 programmsete päringute jaoks. Välja kommenteeritud SSLCARevocationPath.
+ -- Aktors <info@aktors.ee>  Fri,  10 Feb 2012 10:00:00 +0300
+
+xtee-misp2-base (1.0.12) stable; urgency=low
+
+  * create_sslproxy_cert.sh on formateeritud Ubuntu jaoks
+ -- Aktors <info@aktors.ee>  Wed,  01 Feb 2012 13:00:00 +0300
+
+xtee-misp2-base (1.0.11) stable; urgency=low
+
+  * nimetatud ümber: root_certificate.pem > root_2011_crt.pem
+ -- Aktors <info@aktors.ee>  Mon,  30 Jan 2012 14:00:00 +0300
+
+xtee-misp2-base (1.0.10) stable; urgency=low
+
+  * Eemaldatud kaotatud kehtivust esteid.crl ja crl.crl 
+ -- Aktors <info@aktors.ee>  Tue,  12 Jan 2012 09:00:00 +0300
+
+xtee-misp2-base (1.0.9) stable; urgency=low
+
+  * ID-kaardi muudatused ssl konfiguratsioonis
+ -- Aktors <info@aktors.ee>  Tue,  11 Oct 2011 13:00:00 +0300
+
+xtee-misp2-base (1.0.8) stable; urgency=low
+
+  * muudetud JAVA_OPTS muutuja seadistus (/usr/share/tomcat7/bin/setenv.sh konfifail)
+ -- Aktors <info@aktors.ee>  Fri,  05 Aug 2011 13:00:00 +0300
+
+xtee-misp2-base (1.0.7) stable; urgency=low
+
+  * ID-kaardi 2011 crt + muudetud sertide lingid sk.ee lehel
+ -- Mihhail <info@aktors.ee>  Thu,  12 May 2011 13:00:00 +0300
+
+xtee-misp2-base (1.0.6) stable; urgency=low
+
+  * lisatud tomcat7 dependency (openjdk)
+ -- Mihhail <info@aktors.ee>  Mon,  09 May 2011 13:00:00 +0300
+
+xtee-misp2-base (1.0.5) stable; urgency=low
+
+  * lisatud create_sslproxy_cert.sh 
+ -- Mihhail <info@aktors.ee>  Thu,  24 Mar 2011 13:00:00 +0300
+
+xtee-misp2-base (1.0.4) stable; urgency=low
+
+  * versioon amd64 
+ -- Mihhail <info@aktors.ee>  Wed,  23 Mar 2011 15:00:00 +0300
+
+xtee-misp2-base (1.0.3) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks: sertifikaatide loomise skriptid adapteerimine Ubuntu jaoks
+ -- Mihhail <info@aktors.ee>  Tue,  16 Nov 2010 10:00:00 +0300
+
+xtee-misp2-base (1.0.2) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks: lisatud updatecrl ja sertifikaatide loomise skriptid
+ -- Mihhail <info@aktors.ee>  Mon,  09 Nov 2010 15:21:19 +0300
+
+xtee-misp2-base (1.0.1) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks
+ -- Mihhail <info@aktors.ee>  Mon,  08 Nov 2010 15:21:19 +0300
+ 
+xtee-misp2-base (1.0.0) stable; urgency=low
+
+  * apache2 ja tomcat sidumine 
+ -- Mihhail <info@aktors.ee>  Wed,  27 Oct 2010 15:21:19 +0300
+
+
+

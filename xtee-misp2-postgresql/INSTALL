@@ -1,0 +1,14 @@
+X-tee portaali PostgreSQL seadistuse installeerimine lähtetekstist
+
+NB! X-tee portaalide tüüpiline installeerimine toimub Debiani paketi kaudu. 
+Käesolevaga kirjeldatakse installeerimiskäiku üksnes juhuks, mil 
+tüüpilist installeerimist ei suudeta platvormi iseärasuste tõttu korraldada.
+
+Installeerimise eeltingimus on X-tee portaalide 
+rakendusserveri xtee-base installeeritus.
+
+Installeerimine lähtetekstist toimub järgnevalt:
+
+make
+
+

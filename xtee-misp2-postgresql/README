@@ -1,0 +1,11 @@
+PostgreSQL database setup package for MISP2 web application
+
+Package prepares existing PostgreSQL 10 database system for use by
+MISP2 web application components. This includes
+ - creating database (by default 'misp2db')
+ - creating user (by default 'misp2')
+ - adding database schema 'misp2'
+ - creating necessary data model structure within 'misp2' schema
+ - adding/renewing classifiers
+
+Package also contains scripts for backing up and restoring MISP2 application related data.

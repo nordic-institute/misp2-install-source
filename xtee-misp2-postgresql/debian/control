@@ -1,0 +1,11 @@
+Source: xtee-misp2-postgresql
+Section: unknown
+Priority: optional
+Maintainer: OÜ Aktors <info@aktors.ee>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: xtee-misp2-postgresql
+Architecture: any
+Description: PostgreSQL database setup package for MISP2 web application
+Depends: postgresql-10

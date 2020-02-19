@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file is an empty template for your own properties-local.xml file. Please follow the instructions here:
+
+    http://wiki.orbeon.com/forms/doc/developer-guide/configuration-properties
+-->
+<properties xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:oxf="http://www.orbeon.com/oxf/processors">
+
+    <property as="xs:NMTOKENS"
+              name="oxf.xforms.logging.debug"
+              value="submission submission-details"/> <!-- add submission-body to values to see SOAP messages --> 
+    <property as="xs:anyURI" name="oxf.epilogue.theme.renderer" value="oxf:/config/theme-orbeon.xsl"/>
+    <property as="xs:anyURI" name="oxf.epilogue.theme.embeddable" value="oxf:/config/theme-orbeon-embedded.xsl"/> 
+    
+    <!-- Change it to true to see error-messages in web-UI -->
+    <property as="xs:boolean" name="oxf.http.exceptions" value="false"/>
+    <!-- Change to see Orbeon version in stacktrace -->
+    <property as="xs:boolean" name="oxf.show-version" value="false"/>
+    <!-- Property is supposed to filter out dom focus events to reduce AJAX requests, but does not seem to work -->
+    <property as="xs:string"  name="oxf.xforms.client.events.filter" value="DOMFocusIn DOMFocusOut"/>
+	<!-- Change to true to always turn Orbeon inspector -->
+	<property as="xs:boolean" name="oxf.epilogue.xforms.inspector" value="false"/> 
+	<!--    <property as="xs:integer" processor-name="oxf:request" name="max-upload-size" value="300000000"/>-->	
+	
+	<!-- Cookie forwarding is disabled from Orbeon 4.7 onwards. Cookie-forwarding is needed to communicate to misp2 webapp. -->
+	<property as="xs:string" name="oxf.http.forward-cookies" value="JSESSIONID JSESSIONIDSSO"/>
+	<!-- Disable internal query mode which was introduced in Orbeon 4.7 to enable communication with misp2 webapp in the same servlet container -->
+	<property as="xs:string" name="oxf.http.internal-paths" value="NONE OF THE PATHS ARE INTERNAL"/>
+	<!-- Infinite timeout -->
+	<property as="xs:integer" name="oxf.http.so-timeout" value="0"/>
+	
+    <property as="xs:string" name="oxf.xforms.format.input.date" value="[D01].[M01].[Y]"/>
+    <property as="xs:string" name="oxf.xforms.format.input.time" value="[H]:[m]:[s]"/>
+    <property as="xs:string" name="oxf.xforms.format.output.date" value="if (. castable as xs:date) then format-date(xs:date(.), '[D01].[M01].[Y]') else ."/>
+    <property as="xs:string" name="oxf.xforms.format.output.dateTime" value="if (. castable as xs:dateTime) then format-dateTime(xs:dateTime(.), '[D01].[M01].[Y] [H]:[m]:[s]') else ."/>
+    <property as="xs:string" name="oxf.xforms.format.output.time" value="if (. castable as xs:time) then format-time(xs:time(.), '[H]:[m]:[s]') else ."/>
+    
+    <property as="xs:string"  name="oxf.xforms.format.output.decimal" value="if (. castable as xs:decimal) then translate(format-number(xs:decimal(.),'###,###,###,##0.00'), ',.', ' ,') else ."/>
+    <property as="xs:string"  name="oxf.xforms.format.output.integer" value="if (. castable as xs:integer) then translate(format-number(xs:integer(.),'###,###,###,##0'), ',.', ' ,') else ."/>
+    <property as="xs:string"  name="oxf.xforms.format.output.float" value="if (. castable as xs:float) then translate(format-number(xs:float(.),'#,##0.000'), ',.', ' ,') else ."/>
+    <property as="xs:string"  name="oxf.xforms.format.output.double" value="if (. castable as xs:double) then translate(format-number(xs:double(.),'#,##0.000'), ',.', ' ,') else ."/>
+
+	<property as="xs:string" name="oxf.xforms.xbl.fr.fusion-charts.uri-to-swf"  value="/orbeon/Charts"/>
+	<property as="xs:string" name="oxf.url-rewriting.app-paths" value="^/(apps|xbl|forms|Charts)/.*$"/>
+
+    <property as="xs:boolean" name="oxf.xforms.minimal-resources" value="false"/>
+    <property as="xs:boolean" name="oxf.xforms.show-error-dialog" value="false"/>
+    <property as="xs:boolean" name="oxf.epilogue.xforms.preprocessing" value="true"/>
+    <property as="xs:anyURI"  name="oxf.epilogue.xforms.preprocessing.uri" value="oxf:/config/preprocess.xpl"/> 
+</properties>

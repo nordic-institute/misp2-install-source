@@ -1,0 +1,407 @@
+xtee-misp2-postgresql (2.2.5) stable; urgency=low
+
+  * Add service code to query producer_id/name unique constraint.
+  * Install script: fix package upgrade from xtee-misp2-postgresql ver 2.1.4.
+  * Install script: check that the package version is not too old to update.
+  * Install script: add check that the necessary incremental DB alter scripts
+    were assembled together before executing.
+ -- Aktors <info@aktors.ee>  Wed, 19 Feb 2020 17:00:00 +0300
+                
+xtee-misp2-postgresql (2.2.4) stable; urgency=low
+
+  * Add unique constraint on query producer_id and name
+ -- Aktors <info@aktors.ee>  Mon, 17 Feb 2020 12:00:00 +0300
+
+xtee-misp2-postgresql (2.2.3) stable; urgency=low
+
+  * Add query.name not null constraint
+ -- Aktors <info@aktors.ee>  Sat, 04 Jan 2020 10:00:00 +0300
+
+xtee-misp2-postgresql (2.2.2) stable; urgency=low
+
+  * Additional X-Road REST functionality (service code, service list metaservices)
+ -- Aktors <info@aktors.ee>  Wed, 27 Nov 2019 16:00:00 +0300
+
+xtee-misp2-postgresql (2.2.1) stable; urgency=low
+
+  * Preliminary X-Road REST query support
+ -- Aktors <info@aktors.ee>  Mon, 13 May 2019 23:05:00 +0300
+
+xtee-misp2-postgresql (2.1.15) stable; urgency=low
+  
+  * Support for digital signing with ID-card and Mobile-ID
+ -- Aktors <info@aktors.ee>  Mon, 13 May 2019 23:05:00 +0300 
+
+xtee-misp2-postgresql (2.1.14) stable; urgency=low
+  
+  * Add represented party (unit) name to XForms 'temp' instance as instance('temp')/unitName 
+ -- Aktors <info@aktors.ee>  Wed, 13 Feb 2019 12:10:00 +0300 
+
+xtee-misp2-postgresql (2.1.13) stable; urgency=low
+  
+  * Add end user license agreement (EULA) support: 
+    create new tables 'portal_eula' and 'person_eula', add column 'eula_in_use' to 'portal' table
+ -- Aktors <info@aktors.ee>  Wed, 23 Jan 2019 11:30:00 +0300
+
+xtee-misp2-postgresql (2.1.12) stable; urgency=low
+  
+  * Remove text length constraints from 'query_error_log' table 'description' column
+    and 'query_name' table 'query_note' column.
+ -- Aktors <info@aktors.ee>  Wed, 09 May 2018 15:30:00 +0300
+
+xtee-misp2-postgresql (2.1.11) stable; urgency=low
+  
+  * Support for multiple X-Road instances per portal
+  * Alter-scripts are executed transactionally and error ends installation
+ -- Aktors <info@aktors.ee>  Mon, 08 Jan 2018 14:00:00 +0300
+ 
+xtee-misp2-postgresql (2.1.10) stable; urgency=low
+  
+  * Update EHAK classifiers
+ -- Aktors <info@aktors.ee>  Wed, 08 Nov 2017 11:00:00 +0300
+ 
+xtee-misp2-postgresql (2.1.9) stable; urgency=low
+  
+  * Installation script improvements:
+    * Start PostgreSQL server if it is not running 
+    * Retrieve PostgreSQL server port automatically from configuration file
+    * If existing PostgreSQL installation has a database named 'misp2db', 
+	  use this name without prompting user during package upgrade
+    * Instead of asking user, automatically find username/schema name from 
+	  existing database cluster
+    * Replace the user prompt "Does user already exist in database?" with automatic check
+    * Always (re)load classifiers
+    * Refactoring: move DB migration script to a separate file
+ -- Aktors <info@aktors.ee>  Wed, 27 Sep 2017 07:00:00 +0300
+
+xtee-misp2-postgresql (2.1.8) stable; urgency=low
+  
+  * Add DB migration from PostgreSQL 9.3 to 9.5 to installation script
+  * In case webapp config file exists during xtee-misp2-postgresql package update, 
+    read DB connection parameters from it instead of prompting them from user
+ -- Aktors <info@aktors.ee>  Wed, 06 Sep 2017 14:30:00 +0300
+
+xtee-misp2-postgresql (2.1.7) stable; urgency=low
+  
+  * db constraint added, sequences updated
+ -- Aktors <info@aktors.ee>  Fri, 19 Aug 2016 09:30:00 +0300
+
+xtee-misp2-postgresql (2.1.6) stable; urgency=low
+  
+  * Fixes in installation script
+ -- Aktors <info@aktors.ee>  Sun, 17 Jan 2016 19:45:00 +0300
+
+xtee-misp2-postgresql (2.1.5) stable; urgency=low
+  
+  * Slight changes in WSO2 error messages in synapse_functions.sql.
+ -- Aktors <info@aktors.ee>  Sun, 20 Sep 2015 17:50:00 +0300
+ 
+xtee-misp2-postgresql (2.1.4) stable; urgency=low
+  
+  * Add query.sub_query_names database field which holds sub-query identifiers as comma-separated string.
+  * Change all x-road v4 portals to x-road v5 (v5 now also supports v4 queries)
+  * Remove all x-road v6 producers that are not in use and are actually x-road clients, not producers
+ -- Aktors <info@aktors.ee>  Fri, 11 Sep 2015 17:50:00 +0300
+ 
+xtee-misp2-postgresql (2.1.3) stable; urgency=low
+  
+  * Adding classifier x-road query fields to classifier table and removing classifier.query_id
+  * Put xroad_request_namesapce field back to query
+  * Remove 'debug' parameter from MISP2 XSL
+ -- Aktors <info@aktors.ee>  Thu, 10 Sep 2015 11:50:00 +0300
+
+xtee-misp2-postgresql (2.1.2) stable; urgency=low
+  
+  * Increasing misp2.query_log.query_size max-limit
+  * Remove portal.synapseLogging column
+ -- Aktors <info@aktors.ee>  Sun, 6 Sep 2015 22:50:00 +0300
+ 
+xtee-misp2-postgresql (2.1.1) stable; urgency=low
+  
+  * Classifier loading from x-road v6 services
+ -- Aktors <info@aktors.ee>  Fri, 11 Aug 2015 12:50:00 +0300
+
+xtee-misp2-postgresql (2.1.0) stable; urgency=low
+
+  * X-Road v6 support added
+ -- Aktors <info@aktors.ee>  Mon, 11 May 2015 18:30:00 +0300
+
+xtee-misp2-postgresql (2.0.1) stable; urgency=low
+
+  * Add changes from versions 1.0.50 and 1.0.51 to Ubuntu 14.04 branch
+ -- Aktors <info@aktors.ee>  Mon, 11 May 2015 18:30:00 +0300
+
+xtee-misp2-postgresql (2.0.0) stable; urgency=low
+
+  * Migration to Ubuntu 14.04
+  * Namesapce xs added to MISP2 XSLs
+ -- Aktors <info@aktors.ee>  Tue, 08 Apr 2015 18:30:00 +0300
+
+xtee-misp2-postgresql (1.0.51) stable; urgency=low
+
+  * Enforce producer_name uniqueness constraint in_producer_name_pid_lang properly (version 1.0.39 did try to enforce it, but did not clear duplicates before, so index might have been not created)
+ -- Aktors <info@aktors.ee>  Wed,  15 Apr 2015 15:00:00 +0300
+
+xtee-misp2-postgresql (1.0.50) stable; urgency=low
+
+  * Deletion of inactive producers queries avoids deletion of complex producers queries (fixes bug in 1.0.49). Also removed erroneous 1.0.49 alter script
+  * Added foreign key with index for group_person.org_id column (fixes bug manifesting in group_persons remaining in database even if referenced org gets deleted)
+ -- Aktors <info@aktors.ee>  Fri,  10 Apr 2015 12:00:00 +0300
+
+xtee-misp2-postgresql (1.0.49) stable; urgency=low
+
+  * Delete queries of inactive (in_use=false) producers
+ -- Aktors <info@aktors.ee>  Mon,  06 Apr 2015 17:00:00 +0300
+
+xtee-misp2-postgresql (1.0.48) stable; urgency=low
+
+  * Add unique constraint to misp2.query table name field.
+  * Add XSD namespace to MISP2 Orbeon XSL, because it is used in xforms bind attributes.
+ -- Aktors <info@aktors.ee>  Thu, 26 Feb 2015 18:30:00 +0300
+ 
+xtee-misp2-postgresql (1.0.47) stable; urgency=low
+
+  * English translations for XForms 'Save' button and 'Saving to file' dialog labels.
+  * Remove xsi:nil="true" elements from submission output instance to avoid displaying empty fields.
+ -- Aktors <info@aktors.ee>  Tue, 16 Sep 2014 18:30:00 +0300
+ 
+xtee-misp2-postgresql (1.0.46) stable; urgency=low
+
+  * Lisatud indeksid kõikidele välisvõtmetele, mis annab suured võidud päringute kiiruse osas (eriti märgatav teenuste ajaloo nimekirja laadimise puhul)
+  * Korrastatud create_misp2_db.sql faili sisu
+ -- Aktors <info@aktors.ee>  Mon,  25 Aug 2014 18:00:00 +0300
+
+xtee-misp2-postgresql (1.0.45) stable; urgency=low
+
+  * Parandatud väikesed vead create_misp2_db.sql failist, mis takistasid tolle faili käivitamist postgresql poolt vigu mitte ignoreerivas režiimis. Lisaks koondatud DROP TABLE käsud ühte lausesse
+ -- Aktors <info@aktors.ee>  Fri,  08 Aug 2014 12:00:00 +0300
+
+xtee-misp2-postgresql (1.0.44) stable; urgency=low
+
+  * Nullitakse Person tabeli parooliveerg, kaotatakse parooliveeru unikaalsusindeks ja lisatakse veerud ülevõtmiskoodi, parooli soola ja ülevõtmiskoodi soola jaoks
+  * Parandatud manuste allalaadimine WSDList genereeritud xformside jaoks, kus manuse tüüp antakse WSDLis eraldi komplekstüübina
+  * Lihtsustatud install-misp2-postgresql.sh failis alter scriptide käivitamist
+ -- Aktors <info@aktors.ee>  Thu,  07 Aug 2014 14:00:00 +0300
+ 
+xtee-misp2-postgresql (1.0.43) stable; urgency=low
+
+  * Ehak, maakonnad, vallad ja asulad klassifikaatorite uuendus "eesti.ee" portaalist
+ -- Aktors <info@aktors.ee>  Fri,  13 June 2014 14:00:00 +0300
+
+xtee-misp2-postgresql (1.0.42) stable; urgency=low
+
+  * XSLT uuendus teenuse ajaloosse allasutuse lisamise jaoks
+  * Lisatud unit_code veerg query_log tabelisse seotud allasutusele viitamiseks
+ -- Aktors <info@aktors.ee>  Wed,  28 May 2014 18:00:00 +0300
+
+xtee-misp2-postgresql (1.0.41) stable; urgency=low
+
+  * Synapse funktsioonide lisamisel ei kuvata asjatut errorit enam kui lisatav keel "plpgsql" olemas on või kustutatav tüüp puudub
+ -- Aktors <info@aktors.ee>  Fri,  28 Mar 2014 16:30:00 +0300
+
+xtee-misp2-postgresql (1.0.40) stable; urgency=low
+
+  * Synapse funktsioonid lisatakse edaspidi alati nii andmebaasi loomisel kui uuendamisel, ilma üle küsimata
+ -- Aktors <info@aktors.ee>  Fri,  28 Mar 2014 13:30:00 +0300
+
+xtee-misp2-postgresql (1.0.39) stable; urgency=low
+
+  * Lisatud versiooni 1.0.38 alter scripti käivitamise laused, mis tollest versioonist ekslikult välja jäid ning nimetatud tolle scripti versioon 1.0.39 peale selguse huvides
+ -- Aktors <info@aktors.ee>  Mon,  03 Feb 2014 15:51:00 +0300
+
+xtee-misp2-postgresql (1.0.38) stable; urgency=low
+
+  * create_misp2_db.sql encoding on nüüd "ANSI as UTF-8", et täpitäheprobleemid likvideerida
+  * "DROP TABLE IF EXISTS", et vältida asjatute hoiatuste kuvamist
+  * "producer_name" tabelile unikaalsuspiirang
+ -- Aktors <info@aktors.ee>  Thu, 23 Jan 2014 13:58:20 +0300
+
+xtee-misp2-postgresql (1.0.37) stable; urgency=low
+
+  * muudetud fk_xslt_query ja fk_xslt_portal FK-d, et XSL ei rakenduks query kustutamisel kogu andmekogu teenustele ja portal-i kustutamisel globaalselt
+ -- Aktors <info@aktors.ee>  Wed, 20 Mar 2013 15:00:00 +0300
+
+xtee-misp2-postgresql (1.0.36) stable; urgency=low
+
+  * parandus versioonis 1.0.34 esinenud last_portal vea kohta;
+ -- Aktors <info@aktors.ee>  Tue, 22 Jan 2013 16:00:00 +0300
+
+xtee-misp2-postgresql (1.0.35) stable; urgency=low
+
+  * x-road.ee nimeruumi kasutamine on lubatud;
+ -- Aktors <info@aktors.ee>  Mon, 03 Dec 2012 17:00:00 +0300
+
+xtee-misp2-postgresql (1.0.34) stable; urgency=low
+
+  * muudetud last_portal veeru FK; 
+ -- Aktors <info@aktors.ee>  Fri, 16 Oct 2012 14:00:00 +0300
+
+xtee-misp2-postgresql (1.0.33) stable; urgency=low
+
+  * XML submissioni korral sisend ei ole valideeritav (validate=false); lisatud esialgne error-summary;
+ -- Aktors <info@aktors.ee>  Tue, 13 Oct 2012 17:00:00 +0300
+
+xtee-misp2-postgresql (1.0.32) stable; urgency=low
+
+  * context() -> current() valja lulitatud; lisatud vaikimisi portaal kasutajale;
+ -- Aktors <info@aktors.ee>  Mon, 05 Oct 2012 17:00:00 +0300
+
+xtee-misp2-postgresql (1.0.31) stable; urgency=low
+
+  * insert_xslt.sql-i muudatus: hexBinary toetus
+ -- Aktors <info@aktors.ee>  Fri, 26 Oct 2012 09:00:00 +0300
+
+xtee-misp2-postgresql (1.0.30) stable; urgency=low
+
+  * insert_xslt.sql-i muudatus: mitterelevantsete valjade peitmine;
+ -- Aktors <info@aktors.ee>  Mon, 22 Oct 2012 16:00:00 +0300
+
+xtee-misp2-postgresql (1.0.29) stable; urgency=low
+
+  * insert_xslt.sql-i muudatus;
+ -- Aktors <info@aktors.ee>  Thu, 04 Oct 2012 13:00:00 +0300
+
+xtee-misp2-postgresql (1.0.28) stable; urgency=low
+
+  * debug.xsl-i muudatus, query_log tabeli muudatus;
+ -- Aktors <info@aktors.ee>  Mon, 21 May 2012 09:00:00 +0300
+
+xtee-misp2-postgresql (1.0.27) stable; urgency=low
+
+  * xsl-de muudatused; check_register_status tabel muudetud
+ -- Aktors <info@aktors.ee>  Thu, 12 Apr 2012 12:00:00 +0300
+
+xtee-misp2-postgresql (1.0.26) stable; urgency=low
+
+  * lisatud query_error_log tabel
+ -- Aktors <info@aktors.ee>  Tue, 20 Mar 2012 10:00:00 +0300
+
+xtee-misp2-postgresql (1.0.25) stable; urgency=low
+
+  * lisatud synapse-functions.sql, muudetud debug.xsl
+ -- Aktors <info@aktors.ee>  Thu, 15 Mar 2012 12:00:00 +0300
+
+xtee-misp2-postgresql (1.0.24) stable; urgency=low
+
+  * query_log tabelis eemaldatud not null väljad
+ -- Aktors <info@aktors.ee>  Thu, 01 Mar 2012 11:00:00 +0300
+
+xtee-misp2-postgresql (1.0.23) stable; urgency=low
+
+  * debug.xsl: lang parameeter vormi juurde, lisatud toimik välja klass
+ -- Aktors <info@aktors.ee>  Wed, 29 Feb 2012 11:00:00 +0300
+
+xtee-misp2-postgresql (1.0.22) stable; urgency=low
+
+  * headers.xsl parandus: <ametniknimi> ja <autentija> väljade täitmine
+ -- Aktors <info@aktors.ee>  Thu, 16 Feb 2012 09:00:00 +0300
+
+xtee-misp2-postgresql (1.0.21) stable; urgency=low
+
+  * debug.xsl ja headers.xsl parandused; synapse_logging parameeter portal tabelis;
+ -- Aktors <info@aktors.ee>  Tue, 07 Feb 2012 12:30:00 +0300
+
+xtee-misp2-postgresql (1.0.20) stable; urgency=low
+
+  * xsl-de parandused, lisatud logimisaeg parameeter;
+ -- Aktors <info@aktors.ee>  Mon, 23 Jan 2012 10:30:00 +0300
+
+xtee-misp2-postgresql (1.0.19) stable; urgency=low
+
+  * attachments.xsl-i lisamine manustega vastuses teenuste jaoks
+ -- Aktors <info@aktors.ee>  Tue, 17 Jan 2012 10:30:00 +0300
+
+xtee-misp2-postgresql (1.0.18) stable; urgency=low
+
+  * headers.xsl-i lisatud xtee:ametnik headeri support
+ -- Aktors <info@aktors.ee>  Thu, 29 Dec 2011 10:30:00 +0300
+
+xtee-misp2-postgresql (1.0.17) stable; urgency=low
+
+  * i18n.xsl on vaikimisi mitteaktiivne (vanade teenuste support)
+ -- Aktors <info@aktors.ee>  Tue, 20 Dec 2011 12:30:00 +0300
+
+xtee-misp2-postgresql (1.0.16) stable; urgency=low
+
+  * valikuline use_xrd_issue portal tabelis; xsl-ide jarjekorra muutmine
+ -- Aktors <info@aktors.ee>  Wed, 30 Nov 2011 13:30:00 +0300
+
+xtee-misp2-postgresql (1.0.15) stable; urgency=low
+
+  * uudiste tabel; uued xsl-id
+ -- Aktors <info@aktors.ee>  Fri, 18 Nov 2011 13:30:00 +0300
+
+xtee-misp2-postgresql (1.0.14) stable; urgency=low
+
+  * uus tabel administratorite kirjete jaoks
+ -- Aktors <info@aktors.ee>  Tue, 06 Sep 2011 13:30:00 +0300
+
+xtee-misp2-postgresql (1.0.13) stable; urgency=low
+
+  * *_name tabelid on tehtud uhesuguseks
+ -- Aktors <info@aktors.ee>  Thu, 11 Aug 2011 11:30:00 +0300
+
+xtee-misp2-postgresql (1.0.12) stable; urgency=low
+
+  * lisatud viimased tabeli struktuuri skriptid (mitmekeelne portal_name)
+ -- Aktors <info@aktors.ee>  Wed, 03 Aug 2011 11:30:00 +0300
+
+xtee-misp2-postgresql (1.0.11) stable; urgency=low
+
+  * lisatud xsli ja klassifikaatorite kustutamine enne laadimist
+ -- Aktors <info@aktors.ee>  Fri, 13 May 2011 12:40:00 +0300
+
+xtee-misp2-postgresql (1.0.10) stable; urgency=low
+
+  * muudetud insert_xslt skript (parandatud headers.xsl, uuid genereerimine orbeoniga)
+ -- Aktors <info@aktors.ee>  Thu, 12 May 2011 12:40:00 +0300
+
+xtee-misp2-postgresql (1.0.9) stable; urgency=low
+
+  * uus insert_xslt skript (parandatud debug.xsl ja headers.xsl)
+ -- Aktors <info@aktors.ee>  Mon, 09 May 2011 13:40:00 +0300
+
+xtee-misp2-postgresql (1.0.8) stable; urgency=low
+
+  * uus insert_xslt skript; query name andmevali suurus on 256 marki
+ -- Aktors <info@aktors.ee>  Tue, 03 May 2011 19:40:00 +0300
+
+xtee-misp2-postgresql (1.0.7) stable; urgency=low
+
+  * installiskripti parandus
+ -- Aktors <info@aktors.ee>  Tue, 03 May 2011 09:40:00 +0300
+
+xtee-misp2-postgresql (1.0.6) stable; urgency=low
+
+  * baasimuudatused: topic_name tabel; portal, producer tabeli muudatused
+ -- Mihhail <info@aktors.ee>  Wed, 23 Mar 2011 15:00:00 +0300
+
+xtee-misp2-postgresql (1.0.5) stable; urgency=low
+
+  * baasimuudatused: repository_url vali producer tabelis
+ -- Mihhail <info@aktors.ee>  Mon, 17 Jan 2010 10:00:00 +0300
+
+xtee-misp2-postgresql (1.0.4) stable; urgency=low
+
+  * viimased baasiskriptid
+ -- Mihhail <info@aktors.ee>  Thu, 23 Dec 2010 10:00:00 +0300
+
+xtee-misp2-postgresql (1.0.3) stable; urgency=low
+
+  * baasimuudatused
+ -- Raigo <info@aktors.ee>  Wed, 17 Nov 2010 10:56:19 +0300
+
+xtee-misp2-postgresql (1.0.2) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks (PostgreSQL 8.4), pg_host eemaldatud
+ -- Mihhail <info@aktors.ee>  Tue, 16 Nov 2010 15:21:19 +0300
+ 
+xtee-misp2-postgresql (1.0.1) stable; urgency=low
+
+  * versioon Ubuntu peal testimiseks (PostgreSQL 8.4), skriptide viimane versioon
+ -- Mihhail <info@aktors.ee>  Wed,  09 Nov 2010 15:21:19 +0300
+
+xtee-misp2-postgresql (1.0.0) stable; urgency=low
+
+  * Loomine v1.0.0
+ -- Mihhail <info@aktors.ee>  Wed,  25 Oct 2010 15:21:19 +0300

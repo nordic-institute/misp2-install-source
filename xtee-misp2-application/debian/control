@@ -1,0 +1,11 @@
+Source: xtee-misp2-application
+Section: unknown
+Priority: optional
+Maintainer: OÜ Aktors <info@aktors.ee>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: xtee-misp2-application
+Architecture: amd64
+Depends: xtee-misp2-base, xtee-misp2-orbeon
+Description: MISP2 web application installation package
