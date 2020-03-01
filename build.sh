@@ -71,7 +71,7 @@ fi
 cd "$(dirname "$0")"
 
 # Import functions
-. functions-build.sh
+. resources/functions-build.sh
 
 # Variable declarations
 git_branch_install_source=master
@@ -238,3 +238,4 @@ then
 else
 	echo -e "\nSummary:\nNB! Repo not signed. Added packages to different directory: '$target_repo_dir'.$summary"
 fi
+

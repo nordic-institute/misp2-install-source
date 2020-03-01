@@ -1,3 +1,12 @@
+xtee-misp2-base (2.0.13) stable; urgency=low
+
+  * Update OpenSSL conf.
+    Generate self-signed certificate with RSA-2048 key-algorithm
+    and SHA-256 hash (used to be RSA-1024 and SHA-1 respectively).
+    Remove RANDFILE property - it caused an error message to appear
+    during keypair generation.
+ -- Aktors <info@aktors.ee>  Fri, 28 Feb 2020 16:10:00 +0300
+
 xtee-misp2-base (2.0.12) stable; urgency=low
 
   * Change URLs of ESTEID root certificates downloaded from sk.ee.

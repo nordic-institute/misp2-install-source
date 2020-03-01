@@ -9,3 +9,4 @@ all:
 	cp install-* $(DESTDIR)$(prefix)/app/
 	cp war/* $(DESTDIR)$(prefix)/app/
 	cp conf/* $(DESTDIR)$(prefix)/app/
+	cp util/* $(DESTDIR)$(prefix)/app/

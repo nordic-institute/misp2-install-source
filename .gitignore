@@ -6,6 +6,7 @@
 build/
 target/
 repo/dists
+repo-unsigned/
 
 #Local-only
 upload*.sh

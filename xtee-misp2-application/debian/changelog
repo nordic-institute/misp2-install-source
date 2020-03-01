@@ -1,3 +1,13 @@
+xtee-misp2-application (2.2.8) stable; urgency=low
+  * In case of adding security server SSL certificate,
+    add it to cacerts instead of custom truststore.
+  * In case a custom truststore is alrady configured,
+    prompt user before migrating truststore to cacerts.
+  * HTTPS cert configuration script has been reworked, multiple command 
+    line arguments have been added (e.g. --help,
+    --omit-trust-cert, --new-keystore, --new-keypair and --alias).
+ -- Aktors <info@aktors.ee>  Fri, 28 Feb 2020 16:30:00 +0300
+
 xtee-misp2-application (2.2.7) stable; urgency=low
   * Export/import fixes for group queries and topic queries: include protocol
     in query signature and throw error instead of failing silently.

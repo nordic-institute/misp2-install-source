@@ -223,6 +223,12 @@ if [ "$install_default" == "upgrade" ]
 then
 	echo " === Upgrading MISP2 application  ==="
 	echo " "
+
+	$xrd_prefix/app/create_https_certs_security_server.sh --migrate-truststore-to-cacerts --omit-restart
+	if [ "$?" != "0" ]
+	then
+		exit 1
+	fi
 	
 ### copy war file to the tomcat webapps directory
 ### backuping configuration
@@ -615,7 +621,11 @@ then
 	fi
 	if [ `echo $config_https | grep -i y ` ]
 	then
-		$xrd_prefix/app/create_https_certs_security_server.sh omitrestart
+		$xrd_prefix/app/create_https_certs_security_server.sh --omit-restart
+		if [ "$?" != "0" ]
+		then
+			exit 1
+		fi
 	fi
 
 fi

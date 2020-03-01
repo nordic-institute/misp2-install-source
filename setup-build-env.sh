@@ -95,15 +95,21 @@ then
 	echo "$startup_comment"                                         >> "$startup_conf"
 	
 	echo "Setting '$install_source_dir' as initial directory in '$startup_conf_path'."
-
 	echo "# Change directory to $install_source_dir"                >> "$startup_conf"
-	echo "cd $git_dir_path/$install_source_dir"                     >> "$startup_conf"
+	echo "cd $install_source_dir_full"                              >> "$startup_conf"
 	echo                                                            >> "$startup_conf"
 
 	echo "Adding '$install_source_dir' to PATH in '$startup_conf_path'."
-
 	echo "# Add '$install_source_dir' to PATH."                     >> "$startup_conf"
-	echo "export PATH=\"$git_dir_path/$install_source_dir:\$PATH\"" >> "$startup_conf"
+	echo "export PATH=\"$install_source_dir_full:\$PATH\""          >> "$startup_conf"
+	echo                                                            >> "$startup_conf"
+
+	tab_complete_script="resources/tab-complete-build.sh"
+	echo "Setting up tab-complete script"\
+         "'$install_source_dir/$tab_complete_script' in '$startup_conf_path'"
+	echo "# Set up bash tab-complete for the build script."         >> "$startup_conf"
+	echo "source $install_source_dir_full/$tab_complete_script"     >> "$startup_conf"
+
 	echo "$startup_comment - ends"                                  >> "$startup_conf"
 	echo                                                            >> "$startup_conf"
 
