@@ -123,6 +123,47 @@ else
 	a2dissite 000-default
 fi
 
+## AJP local access
+# Only enable AJP protocol access from localhost to mitigate GhostCat vulnerability
+workers_conf="/etc/libapache2-mod-jk/workers.properties"
+tomcat_server_xml="$tomcat_home/conf/server.xml"
+if [ -f  $workers_conf ]
+then
+        regex_apache_ajp_host_localhost='(\s*worker[.]ajp13_worker[.]host\s*)=\s*localhost'
+        if grep -Eq "$regex_apache_ajp_host_localhost" $workers_conf
+        then
+                perl -pi -e 's|'"$regex_apache_ajp_host_localhost"'|$1=127.0.0.1|g' $workers_conf
+                echo "Configured Apache server AJP connection host to 127.0.0.1 in '$workers_conf'."
+        fi
+else
+        echo "ERROR: Could not find '$workers_conf' file. Cannot configure AJP local access." >> /dev/stderr
+        exit 1
+fi
+if [ -f  $tomcat_server_xml ]
+then
+        regex_ajp_connector='(\s*<Connector)(\s+.*protocol\s*=\s*"AJP/1.3".*)'
+        str_ajp_connector="$(grep -E "$regex_ajp_connector" $tomcat_server_xml)"
+        if [ "$str_ajp_connector" != "" ]
+        then
+                if ! (echo "$str_ajp_connector" | grep -Eq 'address\s*=\s*')
+                then
+                        perl -pi -e 's|'"$regex_ajp_connector"'|$1 address="127.0.0.1"$2|g' $tomcat_server_xml
+                        echo "Configured Tomcat server AJP connector address to 127.0.0.1 in '$tomcat_server_xml'."
+			echo "Restarting Tomcat server."
+                        service tomcat8 restart
+                else
+			# Message is not shown (directed to sink),
+			# but may serve a purpose while debugging with bash -x
+                        echo "AJP address already configured." >> /dev/null
+                fi
+        else
+                echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access."
+        fi
+else
+        echo "ERROR: Could not find '$tomcat_server_xml' file. Cannot configure AJP local access." >> /dev/stderr
+        exit 1
+fi
+## AJP local access ends
 
 #certs
 echo "Updating certificate scripts... "
