@@ -123,32 +123,32 @@ then
 	if [ "$build_webapp" == true ]
 	then
 		# Update MISP2 webapp project
-		cd ../MISP2-web-app
+		cd ../misp2-web-app
 		git pull origin "$git_branch_misp2_webapp"
-		cd ../MISP2-install-source
+		cd ../misp2-install-source
 	fi
 
 	if [ "$build_orbeon" == true ]
 	then
 		# Update Orbeon webapp project
-		cd ../MISP2-orbeon-war
+		cd ../misp2-orbeon-war
 		git pull origin "$git_branch_orbeon_war"
-		cd ../MISP2-install-source
+		cd ../misp2-install-source
 	fi
 fi
 
 # Build webapp WAR-s and copy them to Debian package build directories
 if [ "$build_webapp" == true ]
 then
-	cd ../MISP2-web-app
+	cd ../misp2-web-app
 	echo "(Building MISP2 webapp)"
 	
 	# Build webapp
 	mvn clean install
 	# Copy webapp to 'war' directory in xtee-misp2-application project
-	cp target/misp2.war ../MISP2-install-source/$prefix-application/war/misp2.war
+	cp target/misp2.war ../misp2-install-source/$prefix-application/war/misp2.war
 
-	cd ../MISP2-install-source
+	cd ../misp2-install-source
 else
 	echo "(Not building MISP2 webapp)"
 fi
@@ -167,15 +167,15 @@ fi
 
 if [ "$build_orbeon" == true ]
 then
-	cd ../MISP2-orbeon-war
+	cd ../misp2-orbeon-war
 	echo "(Building Orbeon webapp)"
 	
 	# Build Orbeon webapp WAR
 	ant war
 	# Copy webapp WAR file to 'war' directory in xtee-misp2-orbeon project
-	cp build/orbeon-misp2.war ../MISP2-install-source/$prefix-orbeon/war/orbeon.war
+	cp build/orbeon-misp2.war ../misp2-install-source/$prefix-orbeon/war/orbeon.war
 
-	cd ../MISP2-install-source
+	cd ../misp2-install-source
 else
 	echo "(Not building Orbeon webapp)"
 fi
