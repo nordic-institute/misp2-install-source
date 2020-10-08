@@ -1,0 +1,20 @@
+---
+# This playbook compiles sets up MISP2 build environment based on lxd build hosts
+
+- hosts: lxd_servers
+  roles:
+    - init-lxd
+  tags: 
+    - init
+
+- hosts: compile_servers
+  roles:
+    - compile
+  tags: 
+    - compile
+
+- hosts: compile_servers
+  roles:
+    - build-packages
+  tags: 
+    - build-packages
