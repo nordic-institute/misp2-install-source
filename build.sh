@@ -144,7 +144,7 @@ then
 	echo "(Building MISP2 webapp)"
 	
 	# Build webapp
-	mvn clean install
+	mvn --batch-mode clean install
 	# Copy webapp to 'war' directory in xtee-misp2-application project
 	cp target/misp2.war ../misp2-install-source/$prefix-application/war/misp2.war
 
