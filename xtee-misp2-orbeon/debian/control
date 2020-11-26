@@ -7,5 +7,5 @@ Standards-Version: 3.6.1
 
 Package: xtee-misp2-orbeon
 Architecture: amd64
-Depends: xtee-misp2-base
+Depends: xtee-misp2-base, debconf
 Description: Orbeon XForms engine installation package for MISP2 web application

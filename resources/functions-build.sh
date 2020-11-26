@@ -431,12 +431,12 @@ function adjust_to_distro {
 		# to avoid problems concatinating number to the paremter.
 		perl -pi -e "s/(PostgreSQL |postgresql[\/-])[0-9\.]+/\${1}$new_postgresql_version/g" \
 			$package_source_dir/debian/control \
-			$package_source_dir/install-misp2-postgresql.sh \
+			$package_source_dir/install-misp2-postgresql-debconf.sh \
 			$package_source_dir/README
 
 		# Make a superficial check to see if PostgreSQL version number was substituted
 		if ! (grep -q "postgresql-$new_postgresql_version" $package_source_dir/debian/control && \
-			grep -q "postgresql/$new_postgresql_version/" $package_source_dir/install-misp2-postgresql.sh)
+			grep -q "postgresql/$new_postgresql_version/" $package_source_dir/install-misp2-postgresql-debconf.sh)
 		then
 			echo "PostgreSQL version substitution (to $new_postgresql_version) appears to have failed."
 			exit 1
