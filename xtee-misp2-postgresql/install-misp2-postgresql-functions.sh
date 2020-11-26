@@ -1,3 +1,4 @@
+#!/bin/bash
 ##
 # Echo list of items in human readable format, depending of number of items.
 # @param item_name human readable name for a single list element
