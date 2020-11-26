@@ -29,6 +29,12 @@ Type: [boolean]
 Default: true
 Description: Misp2 webapp database can be created if not found
 
+Template: xtee-misp2-postgresql/webapp_conf
+Type: string
+Default: none
+Description: location of the misp2 config.conf file
+ Previously installed misp2 application config file.
+
 
 Template: xtee-misp2-postgresql/example
 Type: [select,multiselect,string,boolean,note,text,password]

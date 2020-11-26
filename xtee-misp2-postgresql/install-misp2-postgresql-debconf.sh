@@ -7,6 +7,12 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
+function debconf_value() {
+	local db_key="$1"
+	RET=''
+	db_get "$db_key"
+	echo "$RET"
+}
 xrd_prefix=/usr/xtee
 
 workdir=/root/xteesrc
@@ -51,24 +57,14 @@ do
 	sleep 1
 done
 echo "PostgreSQL service is$status_adverb running."
-RET=''
-db_get xtee-misp2-postgresql/webapp_pgport
-webapp_pgport="$RET"
 
-RET=''
-db_get xtee-misp2-postgresql/webapp_dbname
-webapp_dbname="$RET"
-
-RET=''
-db_get xtee-misp2-postgresql/webapp_jdbc_username
-webapp_jdbc_username="$RET"
-
-RET=''
-db_get xtee-misp2-postgresql/confirm_db_creation
-confirm_db_creation="$RET"
+webapp_pgport=$( debconf_value xtee-misp2-postgresql/webapp_pgport )
+webapp_dbname=$( debconf_value xtee-misp2-postgresql/webapp_dbname )
+webapp_jdbc_username=$( debconf_value xtee-misp2-postgresql/webapp_jdbc_username )
+confirm_db_creation=$( debconf_value xtee-misp2-postgresql/confirm_db_creation )
+webapp_conf=$( debconf_value xtee-misp2-postgresql/webapp_conf )
 
 # defaulting to values from debconf
-pgport="$webapp_pgport"
 dbname="$webapp_dbname"
 username="$webapp_jdbc_username"
 ### schema name is the same as username
@@ -76,75 +72,55 @@ schema_name="$username"
 
 db_exists=false
 
-has_db_connection=$(
-            $pgsql_dir/psql -p "$webapp_pgport" -U postgres -lqt 2> /dev/null |
-            perl -nle 'print $1 if m{([^\|]+)}' |
-            grep -w "$webapp_dbname" |
+# we assume Postgresql-10 has been installed and running already according to Depends - control
+user_databases_found=$(get_existing_dbs $webapp_pgport  |
             xargs
         )
 
-pgport=$(perl -nle 'print $1 if m{^\s*port\s*=\s*([0-9]+)}' $pgsql_conf_dir/postgresql.conf)
+pgport="$webapp_pgport"
+
+psql_pgport=$(perl -nle 'print $1 if m{^\s*port\s*=\s*([0-9]+)}' $pgsql_conf_dir/postgresql.conf)
+
+if [ "$user_databases_found"  == "" ] && [ "$psql_pgport" != "$webapp_pgport" ]
+then 
+	user_databases_found=$(get_existing_dbs $psql_pgport  |
+            xargs
+        )
+	[ "$user_databases_found" != "" ] && pgport=$psql_pgport
+fi
 
 
-if [ "$has_db_connection" == "" ]
+if ( echo "$user_databases_found" | tr " " "\n" | grep -wq "$webapp_dbname")
 then
-	### port
-	#  use DB port and DB names from new cluster
-  	pgport=$(perl -nle 'print $1 if m{^\s*port\s*=\s*([0-9]+)}' $pgsql_conf_dir/postgresql.conf)
 
-	existing_dbs=$(get_existing_dbs $pgport)
-	echo "Got existing dbs:$existing_dbs"
-
-	# if port was not found from file, display a error and exit
-	if [ "$pgport" == "" ];
-	then
-		echo -e "$error_prefix PostgreSQL port was not found from config file '$pgsql_conf_dir/postgresql.conf'."
-		exit 1
-	fi
-	echo "PostgreSQL server port $pgport is used."
-
-	### database
-	# If we have exactly one DB name and that is the default DB name, use that.
-	# Otherwise use given webapp db if  exists in the given posgtress instance OR fail.
-	if ( echo "$existing_dbs" | tr " " "\n" | grep -wq "$webapp_dbname")
-	then
-		db_exists=true
-		# try to extract username/schema name from existing database
-		# get list of database schema names that are not public or maintainance
-
-		existing_schemas=$(
-			$pgsql_dir/psql -p $pgport -U postgres \
-				-c "select schema_name from
-					information_schema.schemata where
-						schema_name not like 'pg_%' and
-						schema_name not in
-							('information_schema', 'public')" -t $dbname \
-				2>/dev/null | xargs
-		)
-		# get list of added role names (anything but 'postgres')
-		existing_users=$(
-			$pgsql_dir/psql -p $pgport -U postgres \
-				-c "select rolname from pg_roles where
-					rolname != 'postgres'" -t | xargs
-		)
-
-		if !(echo "$users_same_as_schema" | grep -q "$webapp_jdbc_username") 	
-		then
-			echo "Did not find user/schema $webapp_jdbc_username "
-			echo "tried: DB: $dbname @ localhost:$pgport"
-			exit 1 
-		else
-			echo "Username '$users_same_as_schema' found for DB '$dbname'."
-			username="$webapp_jdbc_username"
-		fi
-	else # DB does not yet exist
-		db_exists=false
-	fi
+	# NOTE: database migration in Xenial from Postgresql version 9.3 to 9.5 removed. 
+	#       See install-misp2-postgresq-functions.sh / is_migration_possible
 
 	
-else # DB access parameters were successfully extracted from webapp config
-	webapp_conf_used=true
-	echo "Using DB connection parameters from configuration file $webapp_conf."
+	# MISP2 DB is set up so that DB username is always the same as schema name.
+	# check that this is the case in the db we have encountered.
+
+	schema_exists=$(
+		$pgsql_dir/psql -p $pgport -U postgres -c "\dn" -t $dbname  2>/dev/null \
+			| grep -o  $username 		
+	)
+	
+	user_exists=$(
+		$pgsql_dir/psql -p $pgport -U postgres -c "\dg" -t $dbname  2>/dev/null \
+		    | grep -o $username 			
+	)
+
+	if [ "$schema_exists" == "" ] || [ "$schema_exists" != "$user_exists" ] 	
+	then
+		echo "Did not find user/schema $webapp_jdbc_username for the provided DB: $dbname @ localhost:$pgport"
+		echo "This is db for something else or failed previous misp2 install - retry install with another db name "
+		exit 1 
+	else
+		echo "Username '$users_same_as_schema' found for DB '$dbname'."
+		username="$webapp_jdbc_username"
+		db_exists=true
+	fi
+	
 fi
 if [ "$db_exists" == "true" ]
 then

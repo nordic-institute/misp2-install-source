@@ -8,9 +8,12 @@ set -e
 # We assume that postgresql 10 is installed as it is in Depends: 
 pgsql_dir=/etc/postgresql/10/bin
 
-
+config_operation=$1
+previous_version=$2
 
 webapp_conf=$(ls /var/lib/tomcat*/webapps/*/WEB-INF/classes/config.cfg 2> /dev/null)
+
+dp_set xtee-misp2-postgresql/webapp_conf $webapp_conf
 if [ -f "$webapp_conf" ]
 then
     db_set xtee-misp2-postgresql/webapp_pgport $(
@@ -44,8 +47,6 @@ webapp_dbname="$RET"
 RET=''
 db_get xtee-misp2-postgresql/webapp_jdbc_username
 webapp_jdbc_username="$RET"
-
-db_go
 
 has_db_connection=$(
             $pgsql_dir/psql -p "$webapp_pgport" -U ${webapp_jdbc_username} -lqt 2> /dev/null |
