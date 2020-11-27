@@ -7,6 +7,10 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
 function debconf_value() {
 	local db_key="$1"
 	RET=''
@@ -31,17 +35,16 @@ export SYSTEMD_PAGER=""
 
 # Load functions
 source /usr/xtee/db/install/install-misp2-postgresql-functions.sh
-
 version=$(dpkg-query  -W -f '${Version}' "xtee-misp2-postgresql")
-echo "You have package version " $version;
+echo "You have package version " $version; >> /dev/stderr
 mkdir -p $workdir
 
 cd $xrd_prefix/db/sql
-echo
+#echo
 if [ ! -f $pgsql_dir/psql ] ;
 then
-	echo "$pgsql_dir/psql is not found"
-	echo "Install and run PostgreSQL 10"
+	echo "$pgsql_dir/psql is not found" >> /dev/stderr
+	echo "Install and run PostgreSQL 10" >> /dev/stderr
 	echo
 	exit 1
 fi
@@ -51,12 +54,12 @@ status_adverb=
 # TODO: prevent endless looping if status cmd gets broken
 while ! /etc/init.d/postgresql status > /dev/null # do not show output, too verbose
 do
-	echo "PostgreSQL service is not running, attempting to start it."
+	echo "PostgreSQL service is not running, attempting to start it." >> /dev/stderr
 	/etc/init.d/postgresql start
 	status_adverb=" now"
 	sleep 1
 done
-echo "PostgreSQL service is$status_adverb running."
+echo  "PostgreSQL service is$status_adverb running." >> /dev/stderr
 
 webapp_pgport=$( debconf_value xtee-misp2-postgresql/webapp_pgport )
 webapp_dbname=$( debconf_value xtee-misp2-postgresql/webapp_dbname )
@@ -95,6 +98,7 @@ then
 
 	# NOTE: database migration in Xenial from Postgresql version 9.3 to 9.5 removed. 
 	#       See install-misp2-postgresq-functions.sh / is_migration_possible
+	# TODO: return the migrate functionality...
 
 	
 	# MISP2 DB is set up so that DB username is always the same as schema name.
@@ -112,8 +116,8 @@ then
 
 	if [ "$schema_exists" == "" ] || [ "$schema_exists" != "$user_exists" ] 	
 	then
-		echo "Did not find user/schema $webapp_jdbc_username for the provided DB: $dbname @ localhost:$pgport"
-		echo "This is db for something else or failed previous misp2 install - retry install with another db name "
+		echo "Did not find user/schema $webapp_jdbc_username for the provided DB: $dbname @ localhost:$pgport" >> /dev/stderr
+		echo "This is db for something else or failed previous misp2 install - retry install with another db name " >>  /dev/stderr
 		exit 1 
 	else
 		echo "Username '$users_same_as_schema' found for DB '$dbname'."
@@ -124,11 +128,8 @@ then
 fi
 if [ "$db_exists" == "true" ]
 then
-	echo "Connection parameters to existing DB:"
-	echo "  pgport=$pgport"
-	echo "  dbname=$dbname"
-	echo "  username=$username"
-	echo ""
+	echo -e "Connection parameters to existing DB: pgport=$pgport, dbname=$dbname, username=$username \n" >> /dev/stderr
+	
 fi
 
 ### migrate DB from PostgreSQL v 9.3 to 9.5 if necessary
@@ -143,7 +144,7 @@ then
 	# Change it to 'trust' and restart postgresql.
 	if grep -Eq "\s*local\s+all\s+postgres\s+peer\s*" $pgsql_conf_dir/pg_hba.conf
 	then
-		echo "Allowing 'postgres' user locally trusted access."
+		echo  "Allowing 'postgres' user locally trusted access." >> /dev/stderr
 		# Assume 'local all postgres ...' line exists in conf:
 		# replace that with 'local all postgres trust'
 		perl -pi -e "s/(\s*local\s+all\s+postgres\s+).*/\1trust/g" \
@@ -152,7 +153,7 @@ then
 	fi
 else
 	echo "$pgsql_conf_dir/pg_hba.conf configuration file is not found."\
-	     "Cannot check for postgres user privileges."
+	     "Cannot check for postgres user privileges." >> /dev/stderr
 fi
 
 ### adding database
@@ -160,18 +161,18 @@ if [ "$db_exists" != "true" ]
 then
 	if (echo $confirm_db_creation | grep -i true) ;
 	then
-		echo "Creating database '$dbname'"
+		echo  "Creating database '$dbname'" >> /dev/stderr
 	else
-		echo "Did not create new database nor updated existing one. Run installation again with correct DB name."
+		echo "Did not create new database nor updated existing one. Run installation again with correct DB name." >> /dev/stderr
 		exit 1;
 	fi
 
 	$pgsql_dir/createdb -p $pgport $dbname -U postgres -T template0 -E UNICODE
 	if [ ! "$PIPESTATUS" = "0" ];
 	then
-		echo "Cannot create database '$dbname'"
-		echo "You can try to create \"$dbname\" by yourself: "
-		echo "$pgsql_dir/createdb  -p $pgport $dbname -U postgres -E UNICODE"
+		echo "Cannot create database '$dbname'" >> /dev/stderr
+		echo "You can try to create \"$dbname\" by yourself: " >> /dev/stderr
+		echo "$pgsql_dir/createdb  -p $pgport $dbname -U postgres -E UNICODE" >> /dev/stderr
 		exit 1
 	fi
 
@@ -183,18 +184,18 @@ then
 
 	if ! (echo "$existing_users" | tr " " "\n" | grep -wq "$username")
 	then
-		echo "Adding new user '$username'"
+		#echo  "Adding new user '$username'"
 		$pgsql_dir/createuser  -p $pgport -U postgres -P -A -D $username
 		if [ ! "$PIPESTATUS" = "0" ];
 		then
-			echo "Cannot add new user '$username'"
-			echo "If user does not exist in the database then create him by running: "
-			echo "$pgsql_dir/createuser -p $pgport -U postgres -P -A -D $username"
+			echo "Cannot add new user '$username'" >> /dev/stderr
+			echo  "If user does not exist in the database then create him by running: " >> /dev/stderr
+			echo  "$pgsql_dir/createuser -p $pgport -U postgres -P -A -D $username" >> /dev/stderr
 			exit 1 
 		fi
 	fi
 
-	echo "Updating database structure"
+	#echo  "Updating database structure"
 	sed "s/<misp2_schema>/$schema_name/g" create_misp2_db.sql > $workdir/tmp.create_misp2_db.sql
 	$pgsql_dir/psql  -p $pgport $dbname -U postgres -f $workdir/tmp.create_misp2_db.sql
 	$pgsql_dir/psql  -p $pgport $dbname -U postgres -c "grant all on schema $schema_name to $username;"
@@ -203,36 +204,34 @@ then
 
 	if [ ! "$PIPESTATUS" = "0" ];
 	then
-		echo "Cannot create database structure"
+		echo "Cannot create database structure" >> /dev/stderr
 		exit 1
-	else
-	echo "Database structure is created"
 	fi
 
 	# default classifiers upload
-	echo "Loading classifiers..."
+	echo  "Loading classifiers..." >> /dev/stderr
 	sed "s/misp2/$schema_name/g" classifier_dump.sql > $workdir/tmp.classifier_dump.sql
 	$pgsql_dir/psql -p $pgport $dbname -U postgres -f $workdir/tmp.classifier_dump.sql -q
 	if [ ! "$PIPESTATUS" = "0" ];
 	then
-		echo "Cannot load classifiers"
+		echo  "Cannot load classifiers" >> /dev/stderr
 		exit 1
 	fi
 
 	###  default xsl upload
-	echo "Loading stylesheets..."
+	echo "Loading stylesheets..." >> /dev/stderr
 	sed "s/misp2/$schema_name/g" insert_xslt.sql > $workdir/tmp.insert_xslt.sql
 	$pgsql_dir/psql -p $pgport $dbname -U postgres -f $workdir/tmp.insert_xslt.sql -q
 	if [ ! "$PIPESTATUS" = "0" ];
 	then
-		echo "Cannot load stylesheets"
+		echo "Cannot load stylesheets" >> /dev/stderr
 		exit 1
 	fi
-	echo "Finished creating new database structure"
+	echo  "Finished creating new database structure" >> /dev/stderr
 
 ### database already exists ###
 else
-	echo "Upgrading '$dbname' on port $pgport."
+	echo  "Upgrading '$dbname' on port $pgport." >> /dev/stderr
 	rm -f $workdir/tmp.alter*
 	sed "s/misp2\./$schema_name\./g" alter_table_1.0.50.sql  > $workdir/tmp.alter_1.0.50.sql
 	sed "s/misp2\./$schema_name\./g" alter_table_1.0.51.sql  > $workdir/tmp.alter_1.0.51.sql
@@ -255,7 +254,7 @@ else
 
 	if [ "$version" = "$current_version" ]
 	then
-		echo "You have latest database version"
+		echo  "You have latest database version" >> /dev/stderr
 		version=1
 	elif (echo "$version" | grep -Eq "^1[.]")
 	then
@@ -366,35 +365,35 @@ else
 				"but updated only to $version." >> /dev/stderr
 			exit 1
 		fi
-	        echo ""
-		echo "Updating database structure... "
+	        #echo  ""
+		echo  "Updating database structure... " >> /dev/stderr
 		# -v ON_ERROR_STOP=1 makes the script fail on error so it would not continue when error is thrown
 		# --single-transaction avoids inconsistent state on failure: either everything succeeds or nothing does
 		$pgsql_dir/psql --single-transaction -v ON_ERROR_STOP=1 -p $pgport $dbname -U postgres -f $workdir/tmp.alter.sql
 		if [ ! "$PIPESTATUS" = "0" ];
 		then
-			echo "Failed updating structure. You can run the alter script by yourself running this line: psql -p $pgport $dbname -U postgres -f $workdir/tmp.alter.sql"
+			echo "Failed updating structure. You can run the alter script by yourself running this line: psql -p $pgport $dbname -U postgres -f $workdir/tmp.alter.sql" >> /dev/stderr
 			exit 1
 		fi
         fi
-	echo "Updating classifiers with user 'postgres'..."
+	echo  "Updating classifiers with user 'postgres'..." >> /dev/stderr
 	sed "s/misp2/$schema_name/g" classifier_dump.sql > $workdir/tmp.classifier_dump.sql
 	$pgsql_dir/psql -p $pgport $dbname -U postgres -f $workdir/tmp.classifier_dump.sql -q
 	if [ "$PIPESTATUS" != "0" ];
 	then
-		echo "Failed updating system classifiers"
+		echo "Failed updating system classifiers" >> /dev/stderr
 		exit 1
 	fi
-	echo "Updating stylesheets with user 'postgres'..."
+	echo "Updating stylesheets with user 'postgres'..." >> /dev/stderr
 	sed "s/misp2/$schema_name/g" insert_xslt.sql > $workdir/tmp.insert_xslt.sql
 	$pgsql_dir/psql -p $pgport $dbname -U postgres -f $workdir/tmp.insert_xslt.sql -q
 	if [ "$PIPESTATUS" != "0" ];
 	then
-		echo "Failed updating system XSL stylesheets"
+		echo "Failed updating system XSL stylesheets" >> /dev/stderr
 		exit 1
 	fi
 
-	echo "Finished updating database structure"
+	echo "Finished updating database structure" >> /dev/stderr
 fi
-echo "";
+#echo "";
 
