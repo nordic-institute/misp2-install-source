@@ -66,6 +66,7 @@ webapp_dbname=$( debconf_value xtee-misp2-postgresql/webapp_dbname )
 webapp_jdbc_username=$( debconf_value xtee-misp2-postgresql/webapp_jdbc_username )
 confirm_db_creation=$( debconf_value xtee-misp2-postgresql/confirm_db_creation )
 webapp_conf=$( debconf_value xtee-misp2-postgresql/webapp_conf )
+webapp_jdbc_password=$( debconf_value xtee-misp2-postgresql/xtee-misp2-postgresql/webapp_jdbc_password)
 
 # defaulting to values from debconf
 dbname="$webapp_dbname"
@@ -86,23 +87,36 @@ psql_pgport=$(perl -nle 'print $1 if m{^\s*port\s*=\s*([0-9]+)}' $pgsql_conf_dir
 
 if [ "$user_databases_found"  == "" ] && [ "$psql_pgport" != "$webapp_pgport" ]
 then 
-	user_databases_found=$(get_existing_dbs $psql_pgport  |
+	if is_migration_possible
+	then
+		echo "DB migration might be performed." >> /dev/stderr
+		# Variables filled in function 'is_migration_possible'
+		pgport="$pg_port_old"
+		user_databases_found="$existing_dbs_old"
+		old_db=true
+	else # else use DB port and DB names from new cluster (normal case)
+		echo "DB migration will not be performed." >> /dev/stderr
+		user_databases_found=$(get_existing_dbs $psql_pgport  |
             xargs
         )
-	[ "$user_databases_found" != "" ] && pgport=$psql_pgport
+		if [ "$user_databases_found" != "" ]
+		then 
+			pgport=$psql_pgport
+			echo "PostgreSQL server port $pgport is used." >> /dev/stderr
+		fi
+	fi
+else
+	webapp_conf_used=true
+	echo "Using DB connection parameters from configuration file $webapp_conf." >> /dev/stderr
 fi
 
 
 if ( echo "$user_databases_found" | tr " " "\n" | grep -wq "$webapp_dbname")
 then
 
-	# NOTE: database migration in Xenial from Postgresql version 9.3 to 9.5 removed. 
-	#       See install-misp2-postgresq-functions.sh / is_migration_possible
-	# TODO: return the migrate functionality...
-
-	
 	# MISP2 DB is set up so that DB username is always the same as schema name.
 	# check that this is the case in the db we have encountered.
+	# TODO: present list of existing user-defined databases for user to select...
 
 	schema_exists=$(
 		$pgsql_dir/psql -p $pgport -U postgres -c "\dn" -t $dbname  2>/dev/null \
@@ -120,7 +134,7 @@ then
 		echo "This is db for something else or failed previous misp2 install - retry install with another db name " >>  /dev/stderr
 		exit 1 
 	else
-		echo "Username '$users_same_as_schema' found for DB '$dbname'."
+		echo "Username '$users_same_as_schema' found for DB '$dbname'." >>  /dev/stderr
 		username="$webapp_jdbc_username"
 		db_exists=true
 	fi
@@ -135,7 +149,8 @@ fi
 ### migrate DB from PostgreSQL v 9.3 to 9.5 if necessary
 # function defined in install-misp2-postgresql-functions.sh
 #  TODO: if 9.3 -> 9.5 still needs to be supported
-# migrate_db_if_needed
+
+migrate_db_if_needed
 
 # Configure postgres user to be locally trusted
 if [ -f $pgsql_conf_dir/pg_hba.conf ]
