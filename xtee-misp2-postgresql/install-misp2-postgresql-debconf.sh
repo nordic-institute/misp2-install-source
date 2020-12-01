@@ -134,7 +134,7 @@ then
 		echo "This is db for something else or failed previous misp2 install - retry install with another db name " >>  /dev/stderr
 		exit 1 
 	else
-		echo "Username '$users_same_as_schema' found for DB '$dbname'." >>  /dev/stderr
+		echo "Username '$user_exists' found for DB '$dbname'." >>  /dev/stderr
 		username="$webapp_jdbc_username"
 		db_exists=true
 	fi
