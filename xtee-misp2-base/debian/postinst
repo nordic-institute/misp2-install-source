@@ -22,7 +22,8 @@ chmod 755 /usr/xtee/apache2/updatecrl.sh
 
 case "$1" in
     configure)
-    /usr/xtee/apache2/install-misp2-base.sh 
+    echo "postinst of base called with params: 1: $1    2: $2"
+    env DEBCONF_PACKAGE=xtee-misp2-base /usr/xtee/apache2/install-misp2-base.sh 
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
 
