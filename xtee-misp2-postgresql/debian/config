@@ -1,5 +1,4 @@
 #!/bin/bash -e 
-
 set -e
 
 # Source debconf library.
@@ -11,12 +10,12 @@ pgsql_dir=/etc/postgresql/10/bin
 config_operation="$1"
 previous_version="$2"
 
-if [$config_operation == "configure"] || [$config_operation == "reconfigure"]
+if [ $config_operation == "configure" ] || [ $config_operation == "reconfigure" ]
 then
 
-    webapp_conf=$(ls /var/lib/tomcat*/webapps/*/WEB-INF/classes/config.cfg 2> /dev/null)
+    webapp_conf=$(find /var/lib/  -path *tomcat* -path *webapps* -path *WEB-INF/classes* -name config.cfg 2> /dev/null) 
 
-    dp_set xtee-misp2-postgresql/webapp_conf $webapp_conf
+    db_set xtee-misp2-postgresql/webapp_conf $webapp_conf
     if [ -f "$webapp_conf" ]
     then
         db_set xtee-misp2-postgresql/webapp_pgport $(

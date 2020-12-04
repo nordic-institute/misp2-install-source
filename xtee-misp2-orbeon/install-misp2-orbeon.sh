@@ -44,13 +44,13 @@ function wait_for_orbeon_deployment {
 	while	! orbeon_deployed
 	do
 		time_spent=$(($SECONDS - $start_time))
-		echo -ne "...Waiting for Orbeon webapp deployment... ($time_spent s)"\\r
+		echo -ne "...Waiting for Orbeon webapp deployment... ($time_spent s)"\\r >> /dev/stderr
 		sleep 0.5
 	done
 	sleep 1
 	# Add another newline if previous entry was a line update
 	[ "$time_spent" != "" ] && echo
-	echo "...Orbeon webapp deployment done..."
+	echo "...Orbeon webapp deployment done..." >> /dev/stderr
 }
 
 ##
@@ -81,13 +81,13 @@ function wait_for_orbeon_undeployment {
 	while	! orbeon_undeployed
 	do
 		time_spent=$(($SECONDS - $start_time))
-		echo -ne "...Waiting for Orbeon webapp undeployment... ($time_spent s)"\\r
+		echo -ne "...Waiting for Orbeon webapp undeployment... ($time_spent s)"\\r >> /dev/stderr
 		sleep 0.5
 	done
 	sleep 1
 	# Add another newline if previous entry was a line update
 	[ "$time_spent" != "" ] && echo
-	echo "...Orbeon webapp undeployment done..."
+	echo "...Orbeon webapp undeployment done..." >> /dev/stderr
 }
 
 #####################################
@@ -97,35 +97,24 @@ function wait_for_orbeon_undeployment {
 status_adverb=
 while ! /etc/init.d/tomcat8 status > /dev/null # do not show output, too verbose
 do
-	echo "Tomcat7 service is not running, attempting to start it."
+	echo "Tomcat7 service is not running, attempting to start it."  >> /dev/stderr
 	/etc/init.d/tomcat8 start
 	status_adverb=" now"
 	sleep 1
 done
-echo "Tomcat7 service is$status_adverb running."
-
-if [ ! -d $tomcat_home/webapps ]
-then
-	echo -n "Please provide Apache Tomcat client working directory [$tomcat_home]? "
-	read user_tomcat < /dev/tty
-	if [ "$user_tomcat" == "" ]
-	then
-		user_tomcat=$tomcat_home
-	fi
-	tomcat_home=$user_tomcat
-fi
+echo "Tomcat7 service is$status_adverb running." >> /dev/stderr
 
 
 if [ ! -d $tomcat_home/webapps ]
 then
-	echo "$tomcat_home/webapps is not found"
+	echo "$tomcat_home/webapps is not found" >> /dev/stderr
 	exit 1
 fi
 
 # Back up configuration, if orbeon has been deployed
 if orbeon_deployed
 then
-	echo " === Backing up configuration === "
+	echo " === Backing up configuration === " >> /dev/stderr
 	cp $tomcat_home/webapps/orbeon/WEB-INF/resources/config/properties-local.xml /tmp/properties-local.xml.bkp
 	cp $tomcat_home/webapps/orbeon/WEB-INF/resources/config/log4j.xml /tmp/log4j.xml.bkp
 else
@@ -134,19 +123,19 @@ else
 fi
 
 # Undeploy old war
-echo " === Undeploying previous version of Orbeon web application === "
+echo " === Undeploying previous version of Orbeon web application === " >> /dev/stderr
 rm -rf $tomcat_home/webapps/orbeon*
 wait_for_orbeon_undeployment
 
 # Deploy new orbeon.war to webapps directory
-echo " === Deploying new version of Orbeon web application === "
+echo " === Deploying new version of Orbeon web application === " >> /dev/stderr
 cp $xrd_prefix/orbeon/orbeon.war $tomcat_home/webapps/
 wait_for_orbeon_deployment
 
 # Restore version for certain package versions, we dont want to restore for Orbeon version upgrade
 if [ "$preserve_configuration" == "true" ]
 then
-	echo " === Restoring configuration from backup === "
+	echo " === Restoring configuration from backup === " >> /dev/stderr
 	cp /tmp/properties-local.xml.bkp $tomcat_home/webapps/orbeon/WEB-INF/resources/config/properties-local.xml
 	cp /tmp/log4j.xml.bkp $tomcat_home/webapps/orbeon/WEB-INF/resources/config/log4j.xml
 fi
@@ -154,20 +143,19 @@ fi
 # Restart Tomcat
 if [ ! -f /etc/init.d/tomcat8 ]
 then
-        echo "Shutdown Tomcat..."
+        echo "Shutdown Tomcat..." >> /dev/stderr
         $tomcat_home/bin/shutdown.sh
-        echo "Tomcat starting up..."
+        echo "Tomcat starting up..." >> /dev/stderr
         $tomcat_home/bin/startup.sh
 else
         /etc/init.d/tomcat8 restart
 fi
 
 # Check if Orbeon has been successfully deployed
-if orbeon_deployed
+if ! orbeon_deployed
 then
-	echo "Orbeon application added successfully"
-else
-	echo "Orbeon application deployment failed! Check if Tomcat has deployed orbeon.war in /webapps directory"
+	echo "Orbeon application deployment failed! Check if Tomcat has deployed orbeon.war in /webapps directory" >> /dev/stderr
+	exit 1 
 fi
 
 

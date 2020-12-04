@@ -1,0 +1,2 @@
+install-* usr/xtee/db/install/
+db/sql/* usr/xtee/db/sql/

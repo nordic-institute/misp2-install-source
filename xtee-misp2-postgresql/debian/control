@@ -8,4 +8,4 @@ Standards-Version: 3.6.1
 Package: xtee-misp2-postgresql
 Architecture: any
 Description: PostgreSQL database setup package for MISP2 web application
-Depends: postgresql-10, debconf, perl
+Depends: postgresql-10, debconf (>= 0.2.17), perl
