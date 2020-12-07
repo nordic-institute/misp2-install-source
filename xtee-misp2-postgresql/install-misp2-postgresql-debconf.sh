@@ -66,7 +66,7 @@ webapp_dbname=$( debconf_value xtee-misp2-postgresql/webapp_dbname )
 webapp_jdbc_username=$( debconf_value xtee-misp2-postgresql/webapp_jdbc_username )
 confirm_db_creation=$( debconf_value xtee-misp2-postgresql/confirm_db_creation )
 webapp_conf=$( debconf_value xtee-misp2-postgresql/webapp_conf )
-webapp_jdbc_password=$( debconf_value xtee-misp2-postgresql/xtee-misp2-postgresql/webapp_jdbc_password)
+webapp_jdbc_password=$( debconf_value xtee-misp2-postgresql/webapp_jdbc_password)
 
 # defaulting to values from debconf
 dbname="$webapp_dbname"
