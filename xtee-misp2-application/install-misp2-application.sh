@@ -61,13 +61,13 @@ function wait_for_misp2_deployment {
 	while	! misp2_deployed
 	do
 		time_spent=$(($SECONDS - $start_time))
-		echo -ne "...Waiting for MISP2 webapp deployment... ($time_spent s)"\\r
+		echo -ne "...Waiting for MISP2 webapp deployment... ($time_spent s)"\\r  >> /dev/stderr
 		sleep 0.5
 	done
 	sleep 1
 	# Add another newline if previous entry was a line update
 	[ "$time_spent" != "" ] && echo
-	echo "...MISP2 webapp deployment done..."
+	echo "...MISP2 webapp deployment done..." >> /dev/stderr
 }
 
 ##
@@ -98,13 +98,13 @@ function wait_for_misp2_undeployment {
 	while	! misp2_undeployed
 	do
 		time_spent=$(($SECONDS - $start_time))
-		echo -ne "...Waiting for MISP2 webapp undeployment... ($time_spent s)"\\r
+		echo -ne "...Waiting for MISP2 webapp undeployment... ($time_spent s)"\\r >> /dev/stderr
 		sleep 0.5
 	done
 	sleep 1
 	# Add another newline if previous entry was a line update
 	[ "$time_spent" != "" ] && echo
-	echo "...MISP2 webapp undeployment done..."
+	echo "...MISP2 webapp undeployment done..." >> /dev/stderr
 }
 
 ##
@@ -178,17 +178,17 @@ function replace_conf_prop {
 status_adverb=
 while ! /etc/init.d/tomcat8 status > /dev/null # do not show output, too verbose
 do
-	echo "Tomcat7 service is not running, attempting to start it."
+	echo "Tomcat7 service is not running, attempting to start it." >> /dev/stderr
 	/etc/init.d/tomcat8 start
 	status_adverb=" now"
 	sleep 1
 done
-echo "Tomcat7 service is$status_adverb running."
+echo "Tomcat7 service is$status_adverb running." >> /dev/stderr
 
 # Ask tomcat location
 if [ ! -d $tomcat_home/webapps ]
 then
-	echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: " 
+	echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: "  >> /dev/stderr
 	read user_tomcat < /dev/tty
 	if [ "$user_tomcat" == "" ]
 	then
@@ -199,17 +199,17 @@ fi
 
 if [ ! -d $tomcat_home/webapps ]
 then
-	echo "$tomcat_home/webapps is not found"
+	echo "$tomcat_home/webapps is not found" >> /dev/stderr
 	exit 1
 fi
 
 # If misp2 deploy directory exists then upgrade else install
 if [ -d $tomcat_home/webapps/$app_name ]
 then
-	echo "Found MISP2 deploy directory so upgrading.."
+	echo "Found MISP2 deploy directory so upgrading.." >> /dev/stderr
 	install_default=upgrade
 else
-	echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.."
+	echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
 	install_default=install
 fi
 
@@ -221,8 +221,8 @@ international_member_classes="COM,NGO,GOV"
 
 if [ "$install_default" == "upgrade" ]
 then
-	echo " === Upgrading MISP2 application  ==="
-	echo " "
+	echo " === Upgrading MISP2 application  ===" >> /dev/stderr
+	echo " " >> /dev/stderr
 
 	$xrd_prefix/app/create_https_certs_security_server.sh --migrate-truststore-to-cacerts --omit-restart
 	if [ "$?" != "0" ]
@@ -232,7 +232,7 @@ then
 	
 ### copy war file to the tomcat webapps directory
 ### backuping configuration
-	echo " === Backing up configuration === "
+	echo " === Backing up configuration === " >> /dev/stderr
 	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg /tmp/config.cfg.bkp
 	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
 	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
@@ -242,7 +242,7 @@ then
 	java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/config.orig.cfg -t /tmp/config.cfg.bkp -r /tmp/config.cfg.bkp -e ISO-8859-1
 	if [ $? -ne 0 ]
 	then
-		echo "Config properties synchronization has failed"
+		echo "Config properties synchronization has failed" >> /dev/stderr
 		exit 1
 	fi
 	
@@ -276,36 +276,36 @@ then
 	then
 		# MISP2 version has older Struts version 2.3, meaning we need to clear Tomcat work directory
 		# of existing JSP-s before deploying Struts 2.5-based webapp. Otherwise Tomcat might not recompile them.
-		echo " ... Struts 2.5 migration detected ... "
-		echo " === Undeploying previous version of MISP2 and clearing work directory. === "
-		echo " ... Shutting down Tomcat to clear work directory. ... "
+		echo " ... Struts 2.5 migration detected ... " >> /dev/stderr
+		echo " === Undeploying previous version of MISP2 and clearing work directory. === " >> /dev/stderr
+		echo " ... Shutting down Tomcat to clear work directory. ... " >> /dev/stderr
 		/etc/init.d/tomcat8 stop
 		
-		echo " ... Removing $app_name from webapps directory ... "
+		echo " ... Removing $app_name from webapps directory ... " >> /dev/stderr
 		rm -rf $tomcat_home/webapps/$app_name*
 		
 		tomcat_work_dir="$tomcat_home/work/Catalina/localhost/$app_name"
-		echo " ... Clearing Tomcat work directory for $app_name at $tomcat_work_dir ... "
+		echo " ... Clearing Tomcat work directory for $app_name at $tomcat_work_dir ... " >> /dev/stderr
 		rm -rf "$tomcat_work_dir"
 		
-		echo " ... Starting up Tomcat ... "
+		echo " ... Starting up Tomcat ... " >> /dev/stderr
 		/etc/init.d/tomcat8 start
 	else
 		# Normal use case, work directory is not cleared
-		echo " === Undeploying previous version of MISP2 web application === "
+		echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
 		rm -rf $tomcat_home/webapps/$app_name*
 		wait_for_misp2_undeployment
 	fi	
 
-	echo " === Deploying new version of MISP2 web application === "
+	echo " === Deploying new version of MISP2 web application === " >> /dev/stderr
 	cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
 	wait_for_misp2_deployment
 	
-	echo " === Restoring configuration === "
+	echo " === Restoring configuration === " >> /dev/stderr
 ### restoring configuration
 	if [ ! -d $tomcat_home/webapps/$app_name/WEB-INF/classes -o ! -d $tomcat_home/webapps/$app_name/META-INF ]
 	then
-		echo "WARNING! Previous configuration could not be restored. Either Tomcat was not running or deployment of the application did not finish in time. When installation is complete copy the files /tmp/config.cfg.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg), /tmp/log4j.properties.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/log4j.properties) and $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually."
+		echo "WARNING! Previous configuration could not be restored. Either Tomcat was not running or deployment of the application did not finish in time. When installation is complete copy the files /tmp/config.cfg.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg), /tmp/log4j.properties.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/log4j.properties) and $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
 	else
 		cp /tmp/config.cfg.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 		cp /tmp/orgportal-conf.cfg.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/orgportal-conf.cfg
@@ -319,10 +319,10 @@ then
 	if grep -Eq 'languages\s*=\s*et' $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 	then
 		configure_international="n"
-		echo "Updating Estonian version"
+		echo "Updating Estonian version" >> /dev/stderr
 	else
 		configure_international="y"
-		echo "Updating international version"
+		echo "Updating international version" >> /dev/stderr
 	fi
 	if grep -q 'XROAD_INSTANCES' $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 	then
@@ -330,14 +330,14 @@ then
 		if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]
 		then
 			xroad_instances=$international_xroad_instances
-			echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] "
+			echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
 			read user_xroad_instances < /dev/tty
 			if [ "$user_xroad_instances" != "" ]
 			then
 				xroad_instances=$user_xroad_instances
 			fi
 		fi
-		echo "Updating X-Road instances $xroad_instances"
+		echo "Updating X-Road instances $xroad_instances" >> /dev/stderr
 		perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 	fi
 	
@@ -347,14 +347,14 @@ then
 		if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]
 		then
 			xroad_member_classes=$international_member_classes
-			echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] "
+			echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
 			read user_xroad_member_classes < /dev/tty
 			if [ "$user_xroad_member_classes" != "" ]
 			then
 				xroad_member_classes=$user_xroad_member_classes
 			fi
 		fi
-		echo "Updating X-Road member classes $xroad_member_classes"
+		echo "Updating X-Road member classes $xroad_member_classes" >> /dev/stderr
 		perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 	fi
 fi
@@ -363,15 +363,15 @@ fi
 if [ "$install_default" == "install" ]
 then
 
-	echo " === Deploying MISP2 web application === "
-	echo " "
+	echo " === Deploying MISP2 web application === " >> /dev/stderr
+	echo " " >> /dev/stderr
 	### copy war file to the tomcat webapps directory
 	cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
 		
 	# Only prompt when estonian portal related questions are not skipped
 	if [ "$skip_estonian" != "y" ]
 	then
-		echo -n "Do you want to configure as international version (if no, then will be configured as estonian version)? [y/n] [default: n]: "
+		echo -n "Do you want to configure as international version (if no, then will be configured as estonian version)? [y/n] [default: n]: " >> /dev/stderr
 		read configure_international < /dev/tty
 	fi
 
@@ -382,14 +382,14 @@ then
 		java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/config.orig.cfg -t $xrd_prefix/app/config.origForInternational.cfg -r $xrd_prefix/app/config.orig.cfg -e ISO-8859-1
 		if [ $? -ne 0 ]
 		then
-			echo "Original and international config synchronization has failed"
+			echo "Original and international config synchronization has failed" >> /dev/stderr
 			exit 1
 		fi
 	fi
 
 	### database config
 
-	echo -n "Please provide database host IP to be used [default: $host]: "
+	echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
 	read user_host < /dev/tty
 	if [ "$user_host" == "" ]
 	then
@@ -397,7 +397,7 @@ then
 	fi
 	host=$user_host
 
-	echo -n "Please provide database port to be used [default: $port]: "
+	echo -n "Please provide database port to be used [default: $port]: " >> /dev/stderr
 	read user_port < /dev/tty
 	if [ "$user_port" == "" ]
 	then
@@ -406,7 +406,7 @@ then
 	port=$user_port
 
 
-	echo -n "Please provide database name to be used [default: $db_name]: "
+	echo -n "Please provide database name to be used [default: $db_name]: " >> /dev/stderr
 	read user_db < /dev/tty
 	if [ "$user_db" == "" ]
 	then
@@ -415,7 +415,7 @@ then
 	db_name=$user_db
 
 
-	echo -n "Please provide username to be communicating with database [default: $username]: "
+	echo -n "Please provide username to be communicating with database [default: $username]: " >> /dev/stderr
 	read user_username < /dev/tty
 	if [ "$user_username" == "" ]
 	then
@@ -435,7 +435,7 @@ then
 			echo
 			if [ "$username_pass" == "" ]
 			then
-				echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5."
+				echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
 			fi
 		done
 	else # release is Trusty or older, allow empty password
@@ -447,13 +447,13 @@ then
 		username_pass=$username_password
 	fi
 	
-	echo ""
+	echo "" >> /dev/stderr
 	if [ "$skip_estonian" != "y" ]
 	then
 		### configure Mobile-ID 
 		###
 
-		echo -n "Do you want to enable authentication with Mobile-ID? [y/n] [default: $config_mobile_id] "
+		echo -n "Do you want to enable authentication with Mobile-ID? [y/n] [default: $config_mobile_id] " >> /dev/stderr
 		read user_config_mobile_id < /dev/tty
 		if [ "$user_config_mobile_id" == "" ]
 		then
@@ -461,7 +461,7 @@ then
 			user_config_mobile_id="$config_mobile_id"
 		fi
 
-		if (echo $user_config_mobile_id | grep -i y )
+		if (echo $user_config_mobile_id | grep -i y ) >> /dev/stderr
                 then
 			config_mobile_id=y
 		else
@@ -476,22 +476,22 @@ then
 
             while [ "$mobile_id_relying_party_uuid" == "" ]
             do
-                echo "Please provide your Mobile-ID relying party UUID"
-                echo -n " (format: 00000000-0000-0000-0000-000000000000): "
+                echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
+                echo -n " (format: 00000000-0000-0000-0000-000000000000): " >> /dev/stderr
                 read mobile_id_relying_party_uuid < /dev/tty
                 if [ "$mobile_id_relying_party_uuid" == "" ]
                 then
-                    echo "WARNING! UUID cannot be empty. Please try again."
+                    echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
                 fi
             done
 
             while [ "$mobile_id_relying_party_name" == "" ]
             do
-                echo -n "Please provide your Mobile-ID relying party name: "
+                echo -n "Please provide your Mobile-ID relying party name: " >> /dev/stderr
                 read mobile_id_relying_party_name < /dev/tty
                 if [ "$mobile_id_relying_party_name" == "" ]
                 then
-                    echo "WARNING! Name cannot be empty. Please try again."
+                    echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
                 fi
             done
         fi
@@ -500,7 +500,7 @@ then
 
 	### configure mail servers
 	##
-	echo -n "Please provide SMTP host address [default: $email_host]: "
+	echo -n "Please provide SMTP host address [default: $email_host]: " >> /dev/stderr
 			read user_email_host < /dev/tty
 			if [ "$user_email_host" == "" ]
 			then
@@ -509,20 +509,20 @@ then
 			email_host=$user_email_host
 
 	### sender address
-			echo -n "Please provide server email address: [default: $email_sender]: "
+			echo -n "Please provide server email address: [default: $email_sender]: " >> /dev/stderr
 			read  user_email_sender < /dev/tty
 			if [ "$user_email_sender" == "" ]
 			then
 					user_email_sender=$email_sender
 			fi
 			email_sender=$user_email_sender
-	email_sender=$(echo $email_sender | sed 's/\@/\\@/g')
+	email_sender=$(echo $email_sender | sed 's/\@/\\@/g') >> /dev/stderr
 
 	# Prompt for user input if configure_international=y and international_xroad_instances variable is set
 	if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]
 	then
 		xroad_instances=$international_xroad_instances
-		echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] "
+		echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
 		read user_xroad_instances < /dev/tty
 		if [ "$user_xroad_instances" != "" ]
 		then
@@ -534,7 +534,7 @@ then
 	if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]
 	then
 		xroad_member_classes=$international_member_classes
-		echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] "
+		echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
 		read user_xroad_member_classes < /dev/tty
 		if [ "$user_xroad_member_classes" != "" ]
 		then
@@ -577,15 +577,15 @@ then
 
 	wait_for_misp2_deployment
 
-	echo "Copying configuration files..."
+	echo "Copying configuration files..." >> /dev/stderr
 	cp $xrd_prefix/app/config.orig.cfg $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
 	exit1=$?
 	cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
 	exit2=$?
-	echo "Copying certificates if they exist..."
+	echo "Copying certificates if they exist..." >> /dev/stderr
 	if [ -f $apache2/ssl/MISP2_CA_cert.pem ]
 		then cp $apache2/ssl/MISP2_CA_cert.pem $tomcat_home/webapps/$app_name/WEB-INF/classes/certs/MISP2_CA_cert.pem
-		echo "Copying certificates 1"
+		echo "Copying certificates 1" >> /dev/stderr
 	fi
 	if [ -f $apache2/ssl/MISP2_CA_key.pem ]
 		then cp $apache2/ssl/MISP2_CA_key.pem $tomcat_home/webapps/$app_name/WEB-INF/classes/certs/MISP2_CA_key.pem
@@ -595,11 +595,11 @@ then
 	fi
 	if [ $exit1 -ne 0 -o $exit2 -ne 0 ]
 	then
-		echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat. Please make sure that Tomcat is running and rerun the installation. Exit codes: $exit1 $exit2 $exit3"
+		echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat. Please make sure that Tomcat is running and rerun the installation. Exit codes: $exit1 $exit2 $exit3" >> /dev/stderr
 		exit 1
 	else
-		echo "Configuration files created"
-		echo -n "Do you want to add new administrator account? [y/n] [default: y] "
+		echo "Configuration files created" >> /dev/stderr
+		echo -n "Do you want to add new administrator account? [y/n] [default: y] " >> /dev/stderr
 		read admin_add < /dev/tty
 		if [ "$admin_add" == "" ]
 		then
@@ -607,13 +607,13 @@ then
 		fi
 		if [ `echo $admin_add | grep -i y ` ]
 		then
-			echo "Adding administrator account: "
+			echo "Adding administrator account: " >> /dev/stderr
 			$xrd_prefix/app/admintool.sh -add
 			$xrd_prefix/app/configure_admin_interface_ip.sh change
 		fi
 	fi
 	
-	echo -n "Do you want to enable HTTPS connection between MISP2 application and security server? [y/n] [default: n] "
+	echo -n "Do you want to enable HTTPS connection between MISP2 application and security server? [y/n] [default: n] " >> /dev/stderr
 	read config_https < /dev/tty
 	if [ "$config_https" == "" ]
 	then
@@ -633,12 +633,12 @@ fi
 #Remove cached jsp-s, because for some reason Tomcat does not recompile jsp-s currently. After this deletion however, tomcat will compile jsp-s
 rm -f -r /var/cache/tomcat8/Catalina/localhost/$app_name/org/apache/jsp
 
-echo "Restarting Tomcat..."
+echo "Restarting Tomcat..." >> /dev/stderr
 if [ ! -f /etc/init.d/tomcat8 ]
 then 
-	echo "Shutdown Tomcat..."
+	echo "Shutdown Tomcat..." >> /dev/stderr
 	$tomcat_home/bin/shutdown.sh
-	echo "Tomcat starting up..."
+	echo "Tomcat starting up..." >> /dev/stderr
 	$tomcat_home/bin/startup.sh
 else
 	/etc/init.d/tomcat8 restart
@@ -646,6 +646,6 @@ fi
 
 
 
-echo "Successfully installed application $app_name"
-echo "You can change the configuration of application later by editing this file: "
-echo "$tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg"
+echo "Successfully installed application $app_name" >> /dev/stderr
+echo "You can change the configuration of application later by editing this file: " >> /dev/stderr
+echo "$tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg" >> /dev/stderr
