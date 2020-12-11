@@ -11,6 +11,15 @@ tomcat_home=/var/lib/tomcat8
 tomcat_init=/etc/init.d/tomcat8
 conf_dir=/usr/xtee/apache2
 
+function ci_fails {
+	local ci_fail_reason= "$1"
+	if [ $ci_setup == "y" ]
+	then
+		echo "CI setup fails ... $ci_fail_reason"
+		exit 1 
+	fi
+}
+
 echo "Creating ssl certificate"
 
 # If $conf_dir has been made not readable with 'tar' (700 access rights)
@@ -41,7 +50,8 @@ do
 	then
 		first_loop=false
 	else # first_loop=false
-		echo "File $conf_dir/certs.tar.gz does not exist."
+		echo "File $conf_dir/certs.tar.gz does not exist."  >> /dev/stderr
+		ci_fails "CI install requires $conf_dir/certs.tar.gz"
 	fi
 
 	echo "Please add Security Server certificate archive 'certs.tar.gz' to the MISP2 server directory '$conf_dir/'."
@@ -82,7 +92,7 @@ fi
 # If extracted file is cert.der, rename it to cert.cer
 if (find "$sec_server_cert_file" -maxdepth 1 -printf "%f\n" | grep -Fxq "cert.der")
 then
-	echo "Renaming '$sec_server_cert_file' to 'cert.cer'."
+	echo "Renaming '$sec_server_cert_file' to 'cert.cer'." > /dev/stderr
 	mv "$sec_server_cert_file" cert.cer
 	out_cert_name=cert.der
 else

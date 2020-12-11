@@ -19,13 +19,32 @@ email_host=smtp.domain.ee
 email_sender=info@domain.ee
 apache2=/etc/apache2
 # 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
-configure_international=n
+configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
-skip_estonian=n
+skip_estonian=y
+
+# 'y' for asking nothing from user and setting everything for MISP AWS test setup. 
+#         if that's not possible, fail fast (exit 1)
+# TODO: Could this be deducted somehow without hardwiring?
+
+
+ci_setup=y
+
+# default password for ci setup
+[ "${ci_setup}" == 'y']  && username_pass="changeit-misp2"
 
 #####################
 # Declare functions #
 #####################
+
+function ci_fails {
+	local ci_fail_reason= "$1"
+	if [ $ci_setup == "y" ]
+	then
+		echo "CI setup fails ... $ci_fail_reason"
+		exit 1 
+	fi
+}
 ##
 # @return success code (0) if MISP2 deployment directory with conf files exist
 #         failure code (1) if MISP2 deployment directory or conf files do not exist
@@ -178,6 +197,7 @@ function replace_conf_prop {
 status_adverb=
 while ! /etc/init.d/tomcat8 status > /dev/null # do not show output, too verbose
 do
+	ci_fails "Tomcat service is not running"
 	echo "Tomcat7 service is not running, attempting to start it." >> /dev/stderr
 	/etc/init.d/tomcat8 start
 	status_adverb=" now"
@@ -188,6 +208,7 @@ echo "Tomcat7 service is$status_adverb running." >> /dev/stderr
 # Ask tomcat location
 if [ ! -d $tomcat_home/webapps ]
 then
+	ci_fails "Default tomcat direcotry not found at: $tomcat_home/webapps"
 	echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: "  >> /dev/stderr
 	read user_tomcat < /dev/tty
 	if [ "$user_tomcat" == "" ]
@@ -207,6 +228,7 @@ fi
 if [ -d $tomcat_home/webapps/$app_name ]
 then
 	echo "Found MISP2 deploy directory so upgrading.." >> /dev/stderr
+	ci_fails "MISP2 upgrade not yet supported TODO!"
 	install_default=upgrade
 else
 	echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
@@ -372,6 +394,7 @@ then
 	if [ "$skip_estonian" != "y" ]
 	then
 		echo -n "Do you want to configure as international version (if no, then will be configured as estonian version)? [y/n] [default: n]: " >> /dev/stderr
+		ci_fails "no questions possible"
 		read configure_international < /dev/tty
 	fi
 
@@ -390,7 +413,7 @@ then
 	### database config
 
 	echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
-	read user_host < /dev/tty
+	[ -z "$PS1" ] ||  read user_host < /dev/tty
 	if [ "$user_host" == "" ]
 	then
 		user_host=$host
@@ -398,7 +421,7 @@ then
 	host=$user_host
 
 	echo -n "Please provide database port to be used [default: $port]: " >> /dev/stderr
-	read user_port < /dev/tty
+	[ -z "$PS1" ] || read user_port < /dev/tty
 	if [ "$user_port" == "" ]
 	then
 		user_port=$port
@@ -407,7 +430,7 @@ then
 
 
 	echo -n "Please provide database name to be used [default: $db_name]: " >> /dev/stderr
-	read user_db < /dev/tty
+	[ -z "$PS1" ] || read user_db < /dev/tty
 	if [ "$user_db" == "" ]
 	then
 		user_db=$db_name
@@ -416,7 +439,7 @@ then
 
 
 	echo -n "Please provide username to be communicating with database [default: $username]: " >> /dev/stderr
-	read user_username < /dev/tty
+	[ -z "$PS1" ] || read user_username < /dev/tty
 	if [ "$user_username" == "" ]
 	then
 		user_username=$username
@@ -427,11 +450,10 @@ then
 	if [ "$username_pass" == "" ] && [[ ! $(lsb_release --short --release) < "16.04" ]]
 	then # release is Xenial or newer (not older than 16.04), do not allow empty password
 		# Get new password from user
-		username_pass=
 		while [ "$username_pass" == "" ]
 		do
 			# Note, backslash is interpreted as a quoting symbol, to insert backslash, user needs to input '\\'
-			read -s -p "Please enter password for database user '$username': " username_pass
+			[ -z "$PS1" ] || read-s -p "Please enter password for database user '$username': " username_pass
 			echo
 			if [ "$username_pass" == "" ]
 			then
@@ -439,7 +461,7 @@ then
 			fi
 		done
 	else # release is Trusty or older, allow empty password
-		read -s -p "Please enter username password: [default: $username_pass]: " username_password
+		[ -z "$PS1" ] || read-s -p "Please enter username password: [default: $username_pass]: " username_password
 		if [ "$username_password" == "" ]
 		then
 			username_password=$username_pass
@@ -454,7 +476,7 @@ then
 		###
 
 		echo -n "Do you want to enable authentication with Mobile-ID? [y/n] [default: $config_mobile_id] " >> /dev/stderr
-		read user_config_mobile_id < /dev/tty
+		[ -z "$PS1" ] || readuser_config_mobile_id < /dev/tty
 		if [ "$user_config_mobile_id" == "" ]
 		then
 			# By default use default configuration
@@ -501,7 +523,7 @@ then
 	### configure mail servers
 	##
 	echo -n "Please provide SMTP host address [default: $email_host]: " >> /dev/stderr
-			read user_email_host < /dev/tty
+			[ -z "$PS1" ] || readuser_email_host < /dev/tty
 			if [ "$user_email_host" == "" ]
 			then
 					user_email_host=$email_host
@@ -510,7 +532,7 @@ then
 
 	### sender address
 			echo -n "Please provide server email address: [default: $email_sender]: " >> /dev/stderr
-			read  user_email_sender < /dev/tty
+			[ -z "$PS1" ] || read user_email_sender < /dev/tty
 			if [ "$user_email_sender" == "" ]
 			then
 					user_email_sender=$email_sender
@@ -535,7 +557,7 @@ then
 	then
 		xroad_member_classes=$international_member_classes
 		echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-		read user_xroad_member_classes < /dev/tty
+		[ -z "$PS1" ] || readuser_xroad_member_classes < /dev/tty
 		if [ "$user_xroad_member_classes" != "" ]
 		then
 			xroad_member_classes=$user_xroad_member_classes
@@ -600,7 +622,7 @@ then
 	else
 		echo "Configuration files created" >> /dev/stderr
 		echo -n "Do you want to add new administrator account? [y/n] [default: y] " >> /dev/stderr
-		read admin_add < /dev/tty
+		[ -z "$PS1" ] || readadmin_add < /dev/tty
 		if [ "$admin_add" == "" ]
 		then
 				admin_add="y"
@@ -614,7 +636,7 @@ then
 	fi
 	
 	echo -n "Do you want to enable HTTPS connection between MISP2 application and security server? [y/n] [default: n] " >> /dev/stderr
-	read config_https < /dev/tty
+	[ -z "$PS1" ] || readconfig_https < /dev/tty
 	if [ "$config_https" == "" ]
 	then
 		config_https="n"
