@@ -1,0 +1,5 @@
+	
+	install-* usr/xtee/app/
+	war/* usr/xtee/app/
+	conf/* usr/xtee/app/
+	util/* usr/xtee/app/
