@@ -12,10 +12,9 @@ tomcat_init=/etc/init.d/tomcat8
 conf_dir=/usr/xtee/apache2
 
 function ci_fails {
-	local ci_fail_reason= "$1"
 	if [ $ci_setup == "y" ]
 	then
-		echo "CI setup fails ... $ci_fail_reason"
+		echo "CI setup fails ... $1"
 		exit 1 
 	fi
 }
@@ -56,7 +55,7 @@ do
 
 	echo "Please add Security Server certificate archive 'certs.tar.gz' to the MISP2 server directory '$conf_dir/'."
 	echo -n "Proceed with HTTPS configuration? (Answering 'no' means that HTTPS configuration will not be done this time) [y/n] [default: n] "
-	read add_sec_cert < /dev/tty
+	[ -z "$PS1" ] || read add_sec_cert < /dev/tty
 	if [ "$add_sec_cert" == "" ]
 	then
 		add_sec_cert="n"
@@ -106,7 +105,7 @@ then
 		local min_len=6
 		password_value=""; # global return value
 		while [ "$password_value" == "" ] ; do
-			read -s -p "Enter $target password: " password_value
+			[ -z "$PS1" ] || read -s -p "Enter $target password: " password_value && password_value="changeit"
 			echo
 			# Since passwords are inserted to a bash script that concats Java command line arguments to string,
 			# limit allowed characters to avoid problems caused by command line processing 

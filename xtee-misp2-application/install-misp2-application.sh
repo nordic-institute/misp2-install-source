@@ -410,7 +410,7 @@ then
 	fi
 
 	### database config
-
+	
 	echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
 	[ -z "$PS1" ] ||  read user_host < /dev/tty
 	if [ "$user_host" == "" ]
@@ -499,7 +499,7 @@ then
             do
                 echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
                 echo -n " (format: 00000000-0000-0000-0000-000000000000): " >> /dev/stderr
-                read mobile_id_relying_party_uuid < /dev/tty
+                [ -z "$PS1" ] || read mobile_id_relying_party_uuid < /dev/tty
                 if [ "$mobile_id_relying_party_uuid" == "" ]
                 then
                     echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
@@ -544,7 +544,7 @@ then
 	then
 		xroad_instances=$international_xroad_instances
 		echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-		read user_xroad_instances < /dev/tty
+		[ -z "$PS1" ] || read user_xroad_instances < /dev/tty
 		if [ "$user_xroad_instances" != "" ]
 		then
 			xroad_instances=$user_xroad_instances
@@ -556,7 +556,7 @@ then
 	then
 		xroad_member_classes=$international_member_classes
 		echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-		[ -z "$PS1" ] || readuser_xroad_member_classes < /dev/tty
+		[ -z "$PS1" ] || read user_xroad_member_classes < /dev/tty
 		if [ "$user_xroad_member_classes" != "" ]
 		then
 			xroad_member_classes=$user_xroad_member_classes
@@ -635,19 +635,18 @@ then
 	fi
 	
 	echo -n "Do you want to enable HTTPS connection between MISP2 application and security server? [y/n] [default: n] " >> /dev/stderr
-	[ -z "$PS1" ] || readconfig_https < /dev/tty
+	[ -z "$PS1" ] || read config_https < /dev/tty
 	if [ "$config_https" == "" ]
 	then
 		config_https="n"
 	fi
 	if [ `echo $config_https | grep -i y ` ]
 	then
-		$xrd_prefix/app/create_https_certs_security_server.sh --omit-restart
+		[ -z "$PS1" ] || $xrd_prefix/app/create_https_certs_security_server.sh --omit-restart || true
 		if [ "$?" != "0" ]
 		then
 			exit 1
 		fi
-	fi
 
 fi
 
