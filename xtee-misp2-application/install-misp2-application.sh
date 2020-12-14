@@ -621,7 +621,13 @@ then
 	else
 		echo "Configuration files created" >> /dev/stderr
 		echo -n "Do you want to add new administrator account? [y/n] [default: y] " >> /dev/stderr
-		[ -z "$PS1" ] || readadmin_add < /dev/tty
+		if [ -z "$PS1" ] 
+		then
+			# no admin account added in ci build
+		 	admin_add="n"   
+		else
+		 	readadmin_add < /dev/tty
+		fi 
 		if [ "$admin_add" == "" ]
 		then
 				admin_add="y"
@@ -647,7 +653,7 @@ then
 		then
 			exit 1
 		fi
-
+	fi
 fi
 
 #Remove cached jsp-s, because for some reason Tomcat does not recompile jsp-s currently. After this deletion however, tomcat will compile jsp-s
