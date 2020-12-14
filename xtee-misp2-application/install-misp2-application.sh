@@ -31,17 +31,16 @@ skip_estonian=y
 ci_setup=y
 
 # default password for ci setup
-[ "${ci_setup}" == 'y']  && username_pass="changeit-misp2"
+[ "${ci_setup}" == "y" ]  && username_pass="changeit-misp2"
 
 #####################
 # Declare functions #
 #####################
 
 function ci_fails {
-	local ci_fail_reason= "$1"
-	if [ $ci_setup == "y" ]
+	if [ "$ci_setup" == "y" ]
 	then
-		echo "CI setup fails ... $ci_fail_reason"
+		echo "CI setup fails ... $1"
 		exit 1 
 	fi
 }
