@@ -227,7 +227,7 @@ fi
 if [ -d $tomcat_home/webapps/$app_name ]
 then
 	echo "Found MISP2 deploy directory so upgrading.." >> /dev/stderr
-	ci_fails "MISP2 upgrade not yet supported TODO!"
+	#ci_fails "MISP2 upgrade not yet supported TODO!"
 	install_default=upgrade
 else
 	echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
@@ -352,7 +352,7 @@ then
 		then
 			xroad_instances=$international_xroad_instances
 			echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-			read user_xroad_instances < /dev/tty
+			[ -z "$PS1" ] || read user_xroad_instances < /dev/tty
 			if [ "$user_xroad_instances" != "" ]
 			then
 				xroad_instances=$user_xroad_instances
@@ -369,7 +369,7 @@ then
 		then
 			xroad_member_classes=$international_member_classes
 			echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-			read user_xroad_member_classes < /dev/tty
+			[ -z "$PS1" ] || read user_xroad_member_classes < /dev/tty
 			if [ "$user_xroad_member_classes" != "" ]
 			then
 				xroad_member_classes=$user_xroad_member_classes
