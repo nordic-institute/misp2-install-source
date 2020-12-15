@@ -15,8 +15,8 @@ username_pass=
 config_https=n
 config_mobile_id=n
 install_default=upgrade
-email_host=smtp.domain.ee
-email_sender=info@domain.ee
+email_host=localhost
+email_sender=root@localhost
 apache2=/etc/apache2
 # 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
 configure_international=y
@@ -207,7 +207,7 @@ echo "Tomcat7 service is$status_adverb running." >> /dev/stderr
 # Ask tomcat location
 if [ ! -d $tomcat_home/webapps ]
 then
-	ci_fails "Default tomcat direcotry not found at: $tomcat_home/webapps"
+	ci_fails "Default tomcat directory not found at: $tomcat_home/webapps"
 	echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: "  >> /dev/stderr
 	read user_tomcat < /dev/tty
 	if [ "$user_tomcat" == "" ]
@@ -237,8 +237,8 @@ fi
 
 xroad_instances="EE,ee-dev,ee-test"
 international_xroad_instances="eu-dev,eu-test,eu"
-xroad_member_classes="COM,NGO,GOV,NEE"
-international_member_classes="COM,NGO,GOV"
+xroad_member_classes="COM,ORG,GOV,NEE"
+international_member_classes="COM,NGO,ORG,GOV"
 
 if [ "$install_default" == "upgrade" ]
 then
