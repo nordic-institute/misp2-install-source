@@ -36,7 +36,13 @@ export SYSTEMD_PAGER=""
 # Load functions
 source /usr/xtee/db/install/install-misp2-postgresql-functions.sh
 version=$(dpkg-query  -W -f '${Version}' "xtee-misp2-postgresql")
-echo "You have package version " $version; >> /dev/stderr
+# remove CI build portion of the version. Schema should change only with actual N.M.K - version changes
+if ( echo $version | grep -q 'git' )
+then
+	echo "Schema version extracted from the build version: $version "
+	version=$(echo $version | sed -E 's/([0-9\.]*)([0-9]{14})git[a-z0-9]*/\1/' )
+fi
+echo "You have package shema version " $version; >> /dev/stderr
 mkdir -p $workdir
 
 cd $xrd_prefix/db/sql
