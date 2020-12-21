@@ -202,7 +202,7 @@ do
 		clean_up "$prefix"
 	fi
 	# Compile user-specified packages to *.deb files
-	compile_packages "$packages" "$add_to_repo"
+	compile_packages "$packages" "$add_to_repo" "$distro_codename"
 	# Package compilation done
 
 	if [ "$add_to_repo" == "true" ]

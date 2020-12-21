@@ -227,6 +227,20 @@ function compile_needed {
 ##
 function dpkg_build {
 	local add_to_repo=$1
+	local distro=$2
+	# CI version update
+	if [ "$CI_BUILD" ]
+	then 
+		changelog=$dir/changelog
+		commitdate=$(git show -s --format=%ct)
+		formatted_commit_date="$(date --utc --date @$commitdate +'%Y%m%d%H%M%S')"
+		githash=$(git show -s --format=git%h --abbrev=7)
+		version="$(dpkg-parsechangelog --show-field Version )"
+		local_version="${formatted_commit_date}${githash}"
+		echo "CI build - version:$local_version"
+		dch --preserve --local "$local_version" "CI Build at commit: $githash"
+		dch --preserve --distribution ${distro} --release ""
+	fi 
 	if [ "$add_to_repo" == "true" ]
 	then
 		dpkg-buildpackage -rfakeroot	
@@ -320,15 +334,16 @@ function get_packages {
 function compile_packages {
 	local packages=$1
 	local add_to_repo=$2
+	local distro=$3
 	
 	# Global variable set in this function
 	compiled_packages=""
 
-	echo "Compiling packages: $packages"
+	echo "Compiling packages: $packages for distro: $distro"
 	for package in $(echo $packages)
 	do
 		cd $package
-		dpkg_build "$add_to_repo"
+		dpkg_build "$add_to_repo" "$distro"
 		compiled_packages="${compiled_packages}'$package' "
 		rm debian/$package/ -rf
 		cd ..
