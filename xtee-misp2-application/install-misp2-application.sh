@@ -31,7 +31,7 @@ skip_estonian=y
 ci_setup=y
 
 # default password for ci setup
-[ "${ci_setup}" == "y" ]  && username_pass="changeit-misp2"
+[ "${ci_setup}" == "y" ]  && username_pass="changeit"
 
 #####################
 # Declare functions #
