@@ -12,6 +12,22 @@ if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
+ci_setup=n
+if [ -a /tmp/ci_installation ]
+then
+	echo "CI setup noticed" >> /dev/stderr
+	ci_setup=y
+
+fi
+
+function ci_fails {
+	if [ "$ci_setup" == "y" ]
+	then
+		echo "CI setup fails ... $1"
+		exit 1 
+	fi
+}
+
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
 tomcat_share_home=/usr/share/tomcat8
@@ -56,8 +72,11 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
-db_get xtee-misp2-base/apache2_overwrite_confirmation
-apache2_overwrite_confirmation="${RET}"
+# TODO:  db-conf support missing until MISPDEV-19
+#db_get xtee-misp2-base/apache2_overwrite_confirmation
+# apache2_overwrite_confirmation="${RET}"
+# for CI build we reconfigure ssl.conf anyhow
+apache2_overwrite_confirmation=y
 if [ -f $apache2_home/sites-available/ssl.conf ]; then
 
     if [ $(echo $apache2_overwrite_confirmation | grep -iq true) ]; then
@@ -153,8 +172,12 @@ if [[ "$key_access_rights" == "-rw-r--r--" ]]; then # compare to default access 
 fi
 
 # Only prompt when estonian portal related questions are not skipped
-db_get xtee-misp2-base/sk_certificate_update_confirm
-sk_certs="${RET}"
+# TODO:  db-conf support missing until MISPDEV-19
+# db_get xtee-misp2-base/sk_certificate_update_confirm
+# sk_certs="${RET}"
+
+sk_certs=y
+[ ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
 if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
     function download_pem() {
         local pem_path="$1"
