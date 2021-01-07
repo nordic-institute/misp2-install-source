@@ -33,6 +33,7 @@ then
 	ci_setup=y
 
 fi
+
 # default password for ci setup
 [ "${ci_setup}" == "y" ]  && username_pass="changeit"
 
