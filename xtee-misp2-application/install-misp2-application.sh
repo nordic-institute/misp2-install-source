@@ -27,7 +27,7 @@ skip_estonian=y
 #         if that's not possible, fail fast (exit 1)
 
 ci_setup=n
-if [ -a ci_installation ]
+if [ -a /usr/xtee/app/ci_installation ]
 then
 	echo "CI setup noticed" >> /dev/stderr
 	ci_setup=y
