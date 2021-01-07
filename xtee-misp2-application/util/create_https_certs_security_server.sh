@@ -50,7 +50,6 @@ do
 		first_loop=false
 	else # first_loop=false
 		echo "File $conf_dir/certs.tar.gz does not exist."  >> /dev/stderr
-		ci_fails "CI install requires $conf_dir/certs.tar.gz"
 	fi
 
 	echo "Please add Security Server certificate archive 'certs.tar.gz' to the MISP2 server directory '$conf_dir/'."
@@ -58,6 +57,7 @@ do
 	[ -z "$PS1" ] || read add_sec_cert < /dev/tty
 	if [ "$add_sec_cert" == "" ]
 	then
+		echo "CI build continues without HTTPS config"
 		add_sec_cert="n"
 	fi
 	if [ `echo $add_sec_cert | grep -i y ` ]
