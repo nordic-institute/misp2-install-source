@@ -25,11 +25,14 @@ skip_estonian=y
 
 # 'y' for asking nothing from user and setting everything for MISP AWS test setup. 
 #         if that's not possible, fail fast (exit 1)
-# TODO: Could this be deducted somehow without hardwiring?
 
+ci_setup=n
+if [ -a ci_installation ]
+then
+	echo "CI setup noticed" >> /dev/stderr
+	ci_setup=y
 
-ci_setup=y
-
+fi
 # default password for ci setup
 [ "${ci_setup}" == "y" ]  && username_pass="changeit"
 
