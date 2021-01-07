@@ -41,6 +41,13 @@ fi
 # Change current dir to conf_dir
 cd "$conf_dir"
 
+if [ $ci_setup == "y" ] && [ ! -z "$PS1" ]
+then
+	echo "no CI automatic setup for security server https." >> /dev/stderr
+	echo " You may do it manually afterwards" >> /dev/stderr
+	exit 0 
+fi 
+
 # Loop until user has copied cert archive to current dir
 first_loop=true
 while [ ! -f certs.tar.gz ] && [ ! -f proxycert.tar.gz ] || [ $first_loop == true ]
@@ -64,7 +71,7 @@ do
 	then
 		continue
 	else
-		exit
+		exit 
 	fi
 done
 
