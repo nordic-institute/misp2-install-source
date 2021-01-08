@@ -19,7 +19,7 @@ function ci_fails {
 	fi
 }
 
-echo "Creating ssl certificate"
+echo "Creating ssl certificate" >> /dev/stderr
 
 # If $conf_dir has been made not readable with 'tar' (700 access rights)
 # make it readable to any user, but writable only for root
@@ -41,7 +41,7 @@ fi
 # Change current dir to conf_dir
 cd "$conf_dir"
 
-if [ "$ci_setup" == "y" ] && [ -z "$PS1" ]
+if [ "$ci_setup" == "y" ]
 then
 	echo "no CI automatic setup for security server https." >> /dev/stderr
 	echo " You may do it manually afterwards" >> /dev/stderr
