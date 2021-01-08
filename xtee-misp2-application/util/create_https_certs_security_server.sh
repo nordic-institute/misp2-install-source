@@ -41,7 +41,7 @@ fi
 # Change current dir to conf_dir
 cd "$conf_dir"
 
-if [ $ci_setup == "y" ] && [ "$PS1" ]
+if [ $ci_setup == "y" ] && [ -z "$PS1" ]
 then
 	echo "no CI automatic setup for security server https." >> /dev/stderr
 	echo " You may do it manually afterwards" >> /dev/stderr
