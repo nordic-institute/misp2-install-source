@@ -249,11 +249,18 @@ then
 	echo " === Upgrading MISP2 application  ===" >> /dev/stderr
 	echo " " >> /dev/stderr
 
-	$xrd_prefix/app/create_https_certs_security_server.sh --migrate-truststore-to-cacerts --omit-restart
-	if [ "$?" != "0" ]
-	then
-		exit 1
+	if [ "${ci_setup}" == "y" ] 
+	then 
+		echo "No HTTPS cert setup in CI build"
+	else
+		$xrd_prefix/app/create_https_certs_security_server.sh --migrate-truststore-to-cacerts --omit-restart
+		if [ "$?" != "0" ]
+		then
+			exit 1
+		fi
 	fi
+
+	
 	
 ### copy war file to the tomcat webapps directory
 ### backuping configuration
