@@ -650,6 +650,12 @@ then
 	then
 		config_https="n"
 	fi
+	if [ "${ci_setup}" == "y" ] 
+	then
+		config_https="n"
+		echo "no HTTPS config in CI builds - you can do it later with create_https_certs_security_server.sh - script" >> /dev/stderr
+	fi 
+
 	if [ `echo $config_https | grep -i y ` ]
 	then
 		[ -z "$PS1" ] || $xrd_prefix/app/create_https_certs_security_server.sh --omit-restart || true
