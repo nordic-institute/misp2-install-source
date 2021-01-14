@@ -1,0 +1,46 @@
+Template: xtee-misp2-postgresql/webapp_pgport
+Type: [string]
+Default: 5432
+Description: Postgresql port webapp uses
+ Which  port webapp uses to connect to postgresql database?
+
+
+Template: xtee-misp2-postgresql/webapp_dbname
+Type: [string]
+Default: misp2db
+Description: Postgresql database webapp uses
+ What is the name of the database webapp uses ?
+
+
+Template: xtee-misp2-postgresql/webapp_jdbc_password
+Type: [password]
+Default: changeit
+Description: Postgresql database connection password for webapp database
+ What is the password for the webapp database connection?
+
+Template: xtee-misp2-postgresql/webapp_jdbc_username
+Type: [string]
+Default: misp2
+Description: Misp2 webapp database user and postgresql schema
+ In Misp2 webapp database user and schema has the same name.
+
+Template: xtee-misp2-postgresql/confirm_db_creation
+Type: [boolean]
+Default: true
+Description: Misp2 webapp database can be created if not found
+
+Template: xtee-misp2-postgresql/webapp_conf
+Type: string
+Default: none
+Description: location of the misp2 config.conf file
+ Previously installed misp2 application config file.
+
+
+Template: xtee-misp2-postgresql/example
+Type: [select,multiselect,string,boolean,note,text,password]
+Default: [an optional default value]
+Description: Blah blah blah?
+ Blah blah blah. Blah blah. Blah blah blah. Blah blah? Blah
+ blah blah blah. Blah blah blah. Blah blah.
+ .
+ Blah blah blah. Blah blah. Blah blah blah. Blah bl

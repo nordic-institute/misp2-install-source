@@ -1,0 +1,65 @@
+#!/bin/bash -e 
+set -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# We assume that postgresql 10 is installed as it is in Depends: 
+pgsql_dir=/etc/postgresql/10/bin
+
+config_operation="$1"
+previous_version="$2"
+
+if [ $config_operation == "configure" ] || [ $config_operation == "reconfigure" ]
+then
+
+    webapp_conf=$(find /var/lib/  -path *tomcat* -path *webapps* -path *WEB-INF/classes* -name config.cfg 2> /dev/null) 
+
+    db_set xtee-misp2-postgresql/webapp_conf $webapp_conf
+    if [ -f "$webapp_conf" ]
+    then
+        db_set xtee-misp2-postgresql/webapp_pgport $(
+            perl -nle 'print $2 if m{^\s*jdbc\.url\s*=\s*jdbc:postgresql://(.*):([0-9]+)/([^#\s]+)}' $webapp_conf
+        )
+        db_set xtee-misp2-postgresql/webapp_dbname $(
+            perl -nle 'print $3 if m{^\s*jdbc\.url\s*=\s*jdbc:postgresql://(.*):([0-9]+)/([^#\s]+)}' $webapp_conf
+        )
+        db_set xtee-misp2-postgresql/webapp_jdbc_username $(
+            perl -nle 'print $1 if m{^\s*jdbc\.username\s*=\s*([^#\s]+)}' $webapp_conf
+        )
+        db_set xtee-misp2-postgresql/webapp_jdbc_password $(
+            perl -nle 'print $1 if m{^\s*jdbc\.password\s*=\s*([^#]*)}' $webapp_conf
+        )
+    fi   
+
+    db_input medium xtee-misp2-postgresql/webapp_pgport || true
+    db_input medium xtee-misp2-postgresql/webapp_dbname || true
+    db_input medium xtee-misp2-postgresql/webapp_jdbc_username || true
+    db_input medium xtee-misp2-postgresql/webapp_jdbc_password || true
+    db_go || true
+
+    RET=''
+    db_get xtee-misp2-postgresql/webapp_pgport
+    webapp_pgport="$RET"
+
+    RET=''
+    db_get xtee-misp2-postgresql/webapp_dbname
+    webapp_dbname="$RET"
+
+    RET=''
+    db_get xtee-misp2-postgresql/webapp_jdbc_username
+    webapp_jdbc_username="$RET"
+
+    has_db_connection=$(
+                $pgsql_dir/psql -p "$webapp_pgport" -U ${webapp_jdbc_username} -lqt 2> /dev/null |
+                perl -nle 'print $1 if m{([^\|]+)}' |
+                grep -w "$webapp_dbname" |
+                xargs
+            )
+    if [ "$has_db_connection" == "" ]
+    then
+        db_input medium xtee-misp2-postgresql/confirm_db_creation || true
+        db_go
+    fi
+fi
+db_stop

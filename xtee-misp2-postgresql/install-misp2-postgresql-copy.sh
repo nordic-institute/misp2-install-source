@@ -1,4 +1,4 @@
-# !/bin/sh
+#!/bin/sh
 
 # Andmebaasisüsteemi andmete varundamine ja taastamine
 

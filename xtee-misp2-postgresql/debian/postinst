@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 # postinst script for xtee-postgresql
 #
 # see: dh_installdeb(1)
@@ -16,12 +16,12 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 #
-chmod 755 /usr/xtee/db/install/install-misp2-postgresql.sh
+chmod 755 /usr/xtee/db/install/install-misp2-postgresql-debconf.sh
 chmod 755 /usr/xtee/db/install/install-misp2-postgresql-copy.sh
 
 case "$1" in
     configure)
-    /usr/xtee/db/install/install-misp2-postgresql.sh 
+    env DEBCONF_PACKAGE=xtee-misp2-postgresql /usr/xtee/db/install/install-misp2-postgresql-debconf.sh
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
