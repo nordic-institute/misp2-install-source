@@ -1,7 +1,7 @@
 Source: xtee-misp2-postgresql
 Section: unknown
 Priority: optional
-Maintainer: OÜ Aktors <info@aktors.ee>
+Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.1
 
