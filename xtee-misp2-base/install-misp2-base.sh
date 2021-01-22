@@ -2,7 +2,7 @@
 #
 # MISP2 application Apache Tomcat and Apache2 configuration
 #
-# Aktors 2016
+# Copyright(c) 2020 NIIS <info@niis.org>
 
 set -e
 

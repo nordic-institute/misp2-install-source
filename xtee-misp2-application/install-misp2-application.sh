@@ -2,7 +2,7 @@
 #
 # MISP2 web application package
 #
-# Aktors 2016
+# Copyright: 2020 NIIS <info@niis.org>
 
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
