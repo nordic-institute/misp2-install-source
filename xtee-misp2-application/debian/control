@@ -1,7 +1,7 @@
 Source: xtee-misp2-application
 Section: unknown
 Priority: optional
-Maintainer: 2020 NIIS <info@niis.org>
+Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.1
 
