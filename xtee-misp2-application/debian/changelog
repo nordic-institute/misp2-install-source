@@ -1,8 +1,14 @@
+xtee-misp2-application (2.5.0) stable; urgency=medium
+
+  * NIIS copyrights for fix release
+
+ -- NIIS <info@niis.org>  Mon, 25 Jan 2021 14:34:47 +0200
+
 xtee-misp2-application (2.2.9) stable; urgency=medium
 
   * Improved ID-card certificate checking
 
- -- NIIS <info@niis.org> <teemu@localhost>  Wed, 20 Jan 2021 14:48:13 +0200
+ -- NIIS <info@niis.org>  Wed, 20 Jan 2021 14:48:13 +0200
 
 xtee-misp2-application (2.2.8) stable; urgency=low
   * In case of adding security server SSL certificate,

@@ -1,3 +1,9 @@
+xtee-misp2-postgresql (2.5.0) stable; urgency=medium
+
+  * NIIS copyrights for fix release 
+
+ -- NIIS <info@niis.org> <teemu@localhost>  Mon, 25 Jan 2021 14:37:00 +0200
+
 xtee-misp2-postgresql (2.2.5) stable; urgency=low
 
   * Add service code to query producer_id/name unique constraint.
