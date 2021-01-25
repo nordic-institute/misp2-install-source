@@ -12,8 +12,7 @@ pgsql_default_dbname=misp2db
 pgsql_dir=/usr/lib/postgresql/10/bin
 pgsql_conf_dir=/etc/postgresql/10/main
 current_version="2.2.5"
-dpkg -s "xtee-misp2-postgresql" > /tmp/xtee-postgresql.version
-version=$(awk -F ": " '/Config-Version/ { print $2 }' /tmp/xtee-postgresql.version)
+version=$(dpkg-query  -W -f '${Version}' "xtee-misp2-postgresql")
 error_prefix="\e[1m\e[91mERROR!\e[0m"
 
 # Make sure systemd on Xenial would not send output to 'less' and pause execution when
