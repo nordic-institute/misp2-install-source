@@ -227,6 +227,7 @@ function compile_needed {
 ##
 function dpkg_build {
 	local add_to_repo=$1
+	local distro=$2
 	if [ "$add_to_repo" == "true" ]
 	then
 		dpkg-buildpackage -rfakeroot	
@@ -253,10 +254,11 @@ function dpkg_build {
 			awk '{gsub(/^[.][.][/]|[.]deb$/, "", $0); print $0;}')
 		local package_with_ver=$(echo "$package_with_ver_arch" |
 			awk '{gsub(/_[a-z0-9]+$/, "", $0); print $0;}')
+		local arch=$(echo "$package_with_ver_arch" | sed --regexp-extended  's/^.*_([a-z0-9.]+)$/\1/')
 		
 		# Move compiled *.deb file to 'repo-unsigned' directory
 		local build_result_files_copied=$(find . -maxdepth 1 -type f -name "$package_with_ver_arch.deb")
-		mv -v $build_result_files_copied "$target_dir";
+		mv -v $build_result_files_copied "${target_dir}/${package_with_ver}_${distro}_${arch}.deb";
 		
 		# Remove the other build files files
 		local build_result_files_deleted=$(find . -maxdepth 1 -type f \
@@ -320,6 +322,7 @@ function get_packages {
 function compile_packages {
 	local packages=$1
 	local add_to_repo=$2
+	local distro=$3
 	
 	# Global variable set in this function
 	compiled_packages=""
@@ -328,7 +331,7 @@ function compile_packages {
 	for package in $(echo $packages)
 	do
 		cd $package
-		dpkg_build "$add_to_repo"
+		dpkg_build "$add_to_repo" "$distro"
 		compiled_packages="${compiled_packages}'$package' "
 		rm debian/$package/ -rf
 		cd ..
