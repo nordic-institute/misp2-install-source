@@ -1,3 +1,9 @@
+xtee-misp2-orbeon (2.5.0) stable; urgency=medium
+
+  * NIIS copyrights for fix release
+
+ -- NIIS <info@niis.org> <teemu@localhost>  Mon, 25 Jan 2021 14:36:53 +0200
+
 xtee-misp2-orbeon (2.0.1) stable; urgency=low
 
   * Use Orbeon 4.9 official CE (previously preliminary CE-version was used)
