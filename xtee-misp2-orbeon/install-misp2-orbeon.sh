@@ -2,7 +2,9 @@
 #
 # MISP2 application XForms engine (Orbeon) installation
 #
-# Copyright(c) 2020 NIIS <info@niis.org>
+# Copyright(c) 2020- NIIS <info@niis.org>
+# Copyright(c) Aktors 2016
+
 
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
