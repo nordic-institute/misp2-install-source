@@ -2,7 +2,9 @@
 #
 # MISP2 application PostgreSQL data structure installation and update
 #
-# Copyright(c) 2020 NIIS <info@niis.org>
+# Copyright(c) 2020- NIIS <info@niis.org>
+# Aktors(c) 2020
+
 
 xrd_prefix=/usr/xtee
 

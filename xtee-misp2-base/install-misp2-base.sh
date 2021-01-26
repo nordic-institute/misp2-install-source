@@ -2,7 +2,9 @@
 #
 # MISP2 application Apache Tomcat and Apache2 configuration
 #
-# Copyright(c) 2020 NIIS <info@niis.org>
+# Copyright (c) 2020- Nordic Institute for Interoperability Solutions (NIIS)
+# Aktors (c) 2016
+
 
 set -e
 
