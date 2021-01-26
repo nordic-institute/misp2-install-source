@@ -1,8 +1,9 @@
 xtee-misp2-postgresql (2.5.0) stable; urgency=medium
 
-  * NIIS copyrights for fix release 
+  * NIIS copyrights now
+  * SQL schema update logics for 2.5.0 version
 
- -- NIIS <info@niis.org> <teemu@localhost>  Mon, 25 Jan 2021 14:37:00 +0200
+ -- NIIS <info@niis.org>  Tue, 26 Jan 2021 08:37:10 +0200
 
 xtee-misp2-postgresql (2.2.5) stable; urgency=low
 
