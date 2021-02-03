@@ -237,15 +237,48 @@ then
 		return 0
 	}
 
+	function setup_client_auth_root_certificates {
+		echo "Updating client root certificates... "
+		client_root_ca_path=$apache2_home/ssl/client_ca
+		if [ ! -d $client_root_ca_path ]
+		then 
+			mkdir $client_root_ca_path
+		fi
+		cd $client_root_ca_path
+		for cert in "$@"
+		do
+			openssl x509 -addtrust clientAuth -trustout -in ../${cert}_crt.pem \
+			              -out ${cert}_client_auth_trusted_crt.pem
+			rm -v ../${cert}_crt.pem
+		done
+
+		c_rehash ./
+		cd ..
+	}
+
+	function  remove_client_auth_trust {
+		for root_cert in "$@"
+		do
+			openssl x509 -addreject clientAuth -trustout -in ${root_cert}_crt.pem \
+			              -out ${root_cert}_CA_trusted_crt.pem
+			rm ${root_cert}_crt.pem
+		done
+
+	}
+
 	if [ `echo $sk_certs | grep -i y ` ]
 	then
 
 		echo "Downloading root certificates... "
-		download_pem  sk_root_2011_crt.pem    https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
-		download_pem  sk_esteid_2011_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
-		download_pem  sk_esteid_2015_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
 		download_pem  sk_root_2018_crt.pem    https://c.sk.ee/EE-GovCA2018.pem.crt
+		download_pem  sk_root_2011_crt.pem    https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
 		download_pem  sk_esteid_2018_crt.pem  https://c.sk.ee/esteid2018.pem.crt
+		download_pem  sk_esteid_2015_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
+		download_pem  sk_esteid_2011_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
+
+		setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011 ; 
+
+		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
 
 		# OCSP refresh
 		echo "Downloading OCSP certs... "
