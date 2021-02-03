@@ -181,44 +181,85 @@ fi
 sk_certs=y
 [ ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
 if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
-    function download_pem() {
-        local pem_path="$1"
-        local pem_url="$2"
 
-        wget -O "$pem_path" "$pem_url"
+	function download_pem {
+		local pem_path="$1"
+		local pem_url="$2"
 
-        local wget_result="$?"
-        if [ "$wget_result" != "0" ]; then
-            echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $wget_result)." >> /dev/stderr
-            exit 1
-        elif ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE"); then
-            echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
-            exit 2
-        fi
-        return 0
-    }
-	#echo "Downloading root certificates... "
-	download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
-	download_pem sk_esteid_2011_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
-	download_pem sk_esteid_2015_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
-	download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
-	download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
+		wget -O "$pem_path" "$pem_url"
 
-	# OCSP refresh
-	# echo "Downloading OCSP certs... "
-	download_pem sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
+		local wget_result="$?"
+		if [ "$wget_result" != "0" ]
+		then
+			echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $wget_result)." >> /dev/stderr
+			exit 1
+		elif ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE")
+		then
+			echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
+			exit 2
+		fi
+		return 0
+	}
 
-	cat sk_esteid_ocsp_2011.pem > sk_esteid_ocsp.pem
-	rm -f sk_esteid_ocsp_2011.pem
+	function setup_client_auth_root_certificates {
+		echo "Updating client root certificates... "
+		client_root_ca_path=$apache2_home/ssl/client_ca
+		if [ ! -d $client_root_ca_path ]
+		then 
+			mkdir $client_root_ca_path
+		fi
+		cd $client_root_ca_path
+		for cert in "$@"
+		do
+			openssl x509 -addtrust clientAuth -trustout -in ../${cert}_crt.pem \
+			              -out ${cert}_client_auth_trusted_crt.pem
+			rm -v ../${cert}_crt.pem
+		done
 
-	# update crl
-	./updatecrl.sh "norestart" >> /dev/stderr
-	if [ "$?" != "0" ]; then
-		echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
-		exit 3
+		c_rehash ./
+		cd ..
+	}
+
+	function  remove_client_auth_trust {
+		for root_cert in "$@"
+		do
+			openssl x509 -addreject clientAuth -trustout -in ${root_cert}_crt.pem \
+			              -out ${root_cert}_CA_trusted_crt.pem
+			rm ${root_cert}_crt.pem
+		done
+
+	}
+
+	if [ `echo $sk_certs | grep -i y ` ]
+	then
+
+		echo "Downloading root certificates... "
+		download_pem  sk_root_2018_crt.pem    https://c.sk.ee/EE-GovCA2018.pem.crt
+		download_pem  sk_root_2011_crt.pem    https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
+		download_pem  sk_esteid_2018_crt.pem  https://c.sk.ee/esteid2018.pem.crt
+		download_pem  sk_esteid_2015_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
+		download_pem  sk_esteid_2011_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
+
+		setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011 ; 
+
+		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
+
+		# OCSP refresh
+		echo "Downloading OCSP certs... "
+		download_pem  sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
+
+		cat sk_esteid_ocsp_2011.pem > sk_esteid_ocsp.pem
+		rm -f sk_esteid_ocsp_2011.pem
+
+		# update crl 
+		./updatecrl.sh "norestart"
+		if [ "$?" != "0" ]
+		then
+			echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
+			exit 3
+		fi
+
 	fi
-
-    
 fi
 #echo "Rehashing Apache symbolic links at $(pwd)."
 c_rehash ./
