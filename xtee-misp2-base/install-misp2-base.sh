@@ -244,16 +244,16 @@ then
 		then 
 			mkdir $client_root_ca_path
 		fi
-		cd $client_root_ca_path
 		for cert in "$@"
 		do
-			openssl x509 -addtrust clientAuth -trustout -in ../${cert}_crt.pem \
-			              -out ${cert}_client_auth_trusted_crt.pem
-			rm -v ../${cert}_crt.pem
+			downloaded_cert=${cert}_crt.pem
+			auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
+			cp -v  ${downloaded_cert} $client_root_ca_path
+			openssl x509 -addtrust clientAuth -trustout -in ${downloaded_cert} \
+			              -out ${auth_trusted_cert}
+			rm -v ${downloaded_cert}
 		done
-
-		c_rehash ./
-		cd ..
+		openssl rehash $client_root_ca_path
 	}
 
 	function  remove_client_auth_trust {
