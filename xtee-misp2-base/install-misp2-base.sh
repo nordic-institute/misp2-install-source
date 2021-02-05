@@ -253,7 +253,7 @@ then
 			              -out ${auth_trusted_cert}
 			rm -v ${downloaded_cert}
 		done
-		openssl rehash $client_root_ca_path
+		c_rehash  $client_root_ca_path/
 	}
 
 	function  remove_client_auth_trust {
