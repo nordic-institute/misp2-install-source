@@ -2,7 +2,9 @@
 #
 # MISP2 application PostgreSQL data structure installation and update
 #
-# Aktors 2020
+# Copyright(c) 2020- NIIS <info@niis.org>
+# Aktors(c) 2020
+
 
 xrd_prefix=/usr/xtee
 
@@ -11,9 +13,8 @@ pgsql_default_port=5432
 pgsql_default_dbname=misp2db
 pgsql_dir=/usr/lib/postgresql/10/bin
 pgsql_conf_dir=/etc/postgresql/10/main
-current_version="2.2.5"
-dpkg -s "xtee-misp2-postgresql" > /tmp/xtee-postgresql.version
-version=$(awk -F ": " '/Config-Version/ { print $2 }' /tmp/xtee-postgresql.version)
+current_version="2.5.0"
+version=$(dpkg-query  -W -f '${Version}' "xtee-misp2-postgresql")
 error_prefix="\e[1m\e[91mERROR!\e[0m"
 
 # Make sure systemd on Xenial would not send output to 'less' and pause execution when
@@ -461,6 +462,11 @@ else
     	then
     		cat $workdir/tmp.alter_2.2.5.sql >> $workdir/tmp.alter.sql
     		version="2.2.5"
+    fi
+
+	if [ "$version" == "2.2.5" ]
+    	then
+    		version="2.5.0"
     fi
 
 	# Substitute schema name in alter scripts
