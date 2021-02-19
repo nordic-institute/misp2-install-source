@@ -35,7 +35,7 @@ then
 fi
 
 # default password for ci setup
-[ "${ci_setup}" == "y" ]  && username_pass="changeit"
+[ "${ci_setup}" == "y" ]  && username_pass="secret"
 
 #####################
 # Declare functions #
