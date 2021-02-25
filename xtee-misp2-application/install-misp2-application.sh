@@ -505,6 +505,7 @@ then
         then
             mobile_id_url="https://mid.sk.ee/mid-api"
             mobile_id_polling_timeout=60
+			mobile_id_truststore_path="/etc/apache2/ssl/mobiili_id_trust_store.p12"
 
             while [ "$mobile_id_relying_party_uuid" == "" ]
             do
@@ -598,6 +599,8 @@ then
             replace_conf_prop "mobileID.rest.relyingPartyUUID"      "$mobile_id_relying_party_uuid"
             replace_conf_prop "mobileID.rest.relyingPartyName"      "$mobile_id_relying_party_name"
             replace_conf_prop "mobileID.rest.pollingTimeoutSeconds" "$mobile_id_polling_timeout"
+			replace_conf_prop "mobileID.rest.trustStore.password" "secret"
+			replace_conf_prop "mobileID.rest.trustStore.path"    "$mobile_id_truststore_path"
         fi
 
     fi
