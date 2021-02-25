@@ -63,7 +63,7 @@ do
 	then
 		continue
 	else
-		exit 
+		exit 0
 	fi
 done
 
@@ -104,7 +104,7 @@ then
 		local min_len=6
 		password_value=""; # global return value
 		while [ "$password_value" == "" ] ; do
-			[ -z "$PS1" ] || read -s -p "Enter $target password: " password_value && password_value="changeit"
+			[ -z "$PS1" ] || read -s -p "Enter $target password: " password_value && password_value="secret"
 			echo
 			# Since passwords are inserted to a bash script that concats Java command line arguments to string,
 			# limit allowed characters to avoid problems caused by command line processing 
