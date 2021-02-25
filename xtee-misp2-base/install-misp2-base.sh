@@ -182,7 +182,7 @@ fi
 
 sk_certs=y
 [ ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
+if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq y ) ]; then
     
 	function download_pem {
 		local pem_path="$1"
@@ -260,8 +260,8 @@ if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
 
 		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
 
-	
-	add_to_pkcs12_trust_store sk_root_2018 sk_root_2011 sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
+		add_to_pkcs12_trust_store sk_root_2018 sk_root_2011 sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
+
 		# OCSP refresh
 		echo "Downloading OCSP certs... "
 		download_pem  sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
