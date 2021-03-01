@@ -34,8 +34,6 @@ xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
 tomcat_share_home=/usr/share/tomcat8
 apache2_home=/etc/apache2
-trust_store_file=mobiili_id_trust_store
-standard_trust_store_pwd=secret
 # 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
 skip_estonian=n
 
@@ -181,8 +179,8 @@ fi
 # sk_certs="${RET}"
 
 sk_certs=y
-[ ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq y ) ]; then
+[ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
+if [ "$skip_estonian" != "y" ] &&  $(echo $sk_certs | grep -iq y ) ; then
     
 	function download_pem {
 		local pem_path="$1"
@@ -232,18 +230,7 @@ if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq y ) ]; then
 
 	}
 
-	function add_to_pkcs12_trust_store {
-		for basefilename in "$@"
-		do
-			keytool -import -v -storepass ${standard_trust_store_pwd} -noprompt -trustcacerts \
-          		-file ${basefilename}_crt.pem -alias ${basefilename} \
-          		-keystore ${trust_store_file}.jks
-		done	
-        keytool -importkeystore -srcstorepass ${standard_trust_store_pwd} -deststorepass ${standard_trust_store_pwd} -noprompt -srckeystore ${trust_store_file}.jks -destkeystore ${trust_store_file}.p12 \
-        -srcstoretype JKS -deststoretype PKCS12
-        rm ${trust_store_file}.jks
-	}
-
+	
 	if [ `echo $sk_certs | grep -i y ` ]
 	then
 
@@ -259,8 +246,6 @@ if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq y ) ]; then
 		setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011 ; 
 
 		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
-
-		add_to_pkcs12_trust_store sk_root_2018 sk_root_2011 sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
 
 		# OCSP refresh
 		echo "Downloading OCSP certs... "

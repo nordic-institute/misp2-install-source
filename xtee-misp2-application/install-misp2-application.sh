@@ -18,6 +18,7 @@ install_default=upgrade
 email_host=localhost
 email_sender=root@localhost
 apache2=/etc/apache2
+misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
 # 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
 configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
@@ -193,6 +194,42 @@ function replace_conf_prop {
 	perl -pi -e "$replacement_expression" $xrd_prefix/app/config.orig.cfg
 }
 
+##
+# misp2-base pkg installation already fetched & installed Mobile ID certificates for Apache2
+# This function imports them to jks / PKCS12 type keystore in MISP2 deployment 
+# It's needed for Mobile ID authentication 
+##
+function add_trusted_apache_certs_to_jks_store 
+ {
+	mobile_id_truststore_file="$misp2_tomcat_resources/mobiili_id_trust_store"
+	standard_trust_store_pwd="$username_pass"
+
+	apache_cert_files=$(find ${apache2}/ssl/ -regex .*trusted_crt.pem)
+	if [ -z "$apache_cert_files" ];
+	do
+
+	done
+
+	# import certs to trust store to MISP2 deployment directory
+	for apache_cert_file in $apache_cert_files
+	do
+
+		cert_alias=$(basename $apache_cert_file _trusted_crt.pem)
+		echo $cert_alias
+		openssl x509 -in ${apache_cert_file} \
+			| keytool -import -v -storepass ${standard_trust_store_pwd} \
+				-noprompt -trustcacerts -alias ${cert_alias} \
+				-keystore ${mobile_id_truststore_file}.jks
+	done    
+	keytool -importkeystore -noprompt  \
+			-srckeystore ${mobile_id_truststore_file}.jks -srcstoretype JKS \
+			-srcstorepass ${standard_trust_store_pwd} \
+			-destkeystore ${mobile_id_truststore_file}.p12 -deststoretype PKCS12 \
+			-deststorepass ${standard_trust_store_pwd}
+						
+	rm ${mobile_id_truststore_file}.jks
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -265,10 +302,10 @@ then
 ### copy war file to the tomcat webapps directory
 ### backuping configuration
 	echo " === Backing up configuration === " >> /dev/stderr
-	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg /tmp/config.cfg.bkp
-	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
-	cp $tomcat_home/webapps/$app_name/WEB-INF/classes/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
-	#cp $tomcat_home/webapps/$app_name/WEB-INF/classes/log4j.properties /tmp/log4j.properties.bkp
+	cp $misp2_tomcat_resources/config.cfg /tmp/config.cfg.bkp
+	cp $misp2_tomcat_resources/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
+	cp $misp2_tomcat_resources/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
+	#cp $misp2_tomcat_resources/log4j.properties /tmp/log4j.properties.bkp
 	
 	#Synchronize existing config properties with default ones
 	java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/config.orig.cfg -t /tmp/config.cfg.bkp -r /tmp/config.cfg.bkp -e ISO-8859-1
@@ -335,20 +372,20 @@ then
 	
 	echo " === Restoring configuration === " >> /dev/stderr
 ### restoring configuration
-	if [ ! -d $tomcat_home/webapps/$app_name/WEB-INF/classes -o ! -d $tomcat_home/webapps/$app_name/META-INF ]
+	if [ ! -d $misp2_tomcat_resources -o ! -d $tomcat_home/webapps/$app_name/META-INF ]
 	then
-		echo "WARNING! Previous configuration could not be restored. Either Tomcat was not running or deployment of the application did not finish in time. When installation is complete copy the files /tmp/config.cfg.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg), /tmp/log4j.properties.bkp (to $tomcat_home/webapps/$app_name/WEB-INF/classes/log4j.properties) and $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
+		echo "WARNING! Previous configuration could not be restored. Either Tomcat was not running or deployment of the application did not finish in time. When installation is complete copy the files /tmp/config.cfg.bkp (to $misp2_tomcat_resources/config.cfg), /tmp/log4j.properties.bkp (to $misp2_tomcat_resources/log4j.properties) and $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
 	else
-		cp /tmp/config.cfg.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
-		cp /tmp/orgportal-conf.cfg.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/orgportal-conf.cfg
-		cp /tmp/uniportal-conf.cfg.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/uniportal-conf.cfg
-		#cp /tmp/log4j.properties.bkp $tomcat_home/webapps/$app_name/WEB-INF/classes/log4j.properties 
+		cp /tmp/config.cfg.bkp $misp2_tomcat_resources/config.cfg
+		cp /tmp/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
+		cp /tmp/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
+		#cp /tmp/log4j.properties.bkp $misp2_tomcat_resources/log4j.properties 
 		#cp /tmp/context.xml.bkp $tomcat_home/webapps/$app_name/META-INF/context.xml - disabled since 1.24 because we want to make sure that context is correct
 		cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
 	fi
 	
 ### replacing new key values in configuration
-	if grep -Eq 'languages\s*=\s*et' $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+	if grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg
 	then
 		configure_international="n"
 		echo "Updating Estonian version" >> /dev/stderr
@@ -356,7 +393,7 @@ then
 		configure_international="y"
 		echo "Updating international version" >> /dev/stderr
 	fi
-	if grep -q 'XROAD_INSTANCES' $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+	if grep -q 'XROAD_INSTANCES' $misp2_tomcat_resources/config.cfg
 	then
 		# Prompt for user input if configure_international=y and international_xroad_instances variable is set
 		if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]
@@ -370,10 +407,10 @@ then
 			fi
 		fi
 		echo "Updating X-Road instances $xroad_instances" >> /dev/stderr
-		perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+		perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $misp2_tomcat_resources/config.cfg
 	fi
 	
-	if grep -q 'XROAD_MEMBER_CLASSES' $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+	if grep -q 'XROAD_MEMBER_CLASSES' $misp2_tomcat_resources/config.cfg
 	then
 		# Prompt for user input if configure_international=y and international_member_classes variable is set
 		if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]
@@ -387,7 +424,7 @@ then
 			fi
 		fi
 		echo "Updating X-Road member classes $xroad_member_classes" >> /dev/stderr
-		perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+		perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $misp2_tomcat_resources/config.cfg
 	fi
 fi
 
@@ -500,13 +537,10 @@ then
 			config_mobile_id=n
 		fi
 
-
         if [ "$config_mobile_id" == "y" ]
         then
             mobile_id_url="https://mid.sk.ee/mid-api"
             mobile_id_polling_timeout=60
-			mobile_id_truststore_path="/etc/apache2/ssl/mobiili_id_trust_store.p12"
-
             while [ "$mobile_id_relying_party_uuid" == "" ]
             do
                 echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
@@ -527,6 +561,17 @@ then
                     echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
                 fi
             done
+			 be sure 
+			
+			
+
+			# import Apache2 certs to trust store in MISP2 deployment directory
+			
+
+			
+
+			add_trusted_apache_certs_to_jks_store 
+
         fi
     fi
 
@@ -599,7 +644,7 @@ then
             replace_conf_prop "mobileID.rest.relyingPartyUUID"      "$mobile_id_relying_party_uuid"
             replace_conf_prop "mobileID.rest.relyingPartyName"      "$mobile_id_relying_party_name"
             replace_conf_prop "mobileID.rest.pollingTimeoutSeconds" "$mobile_id_polling_timeout"
-			replace_conf_prop "mobileID.rest.trustStore.password" "secret"
+			replace_conf_prop "mobileID.rest.trustStore.password" "$username_pass"
 			replace_conf_prop "mobileID.rest.trustStore.path"    "$mobile_id_truststore_path"
         fi
 
@@ -613,20 +658,20 @@ then
 	wait_for_misp2_deployment
 
 	echo "Copying configuration files..." >> /dev/stderr
-	cp $xrd_prefix/app/config.orig.cfg $tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg
+	cp $xrd_prefix/app/config.orig.cfg $misp2_tomcat_resources/config.cfg
 	exit1=$?
 	cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
 	exit2=$?
 	echo "Copying certificates if they exist..." >> /dev/stderr
 	if [ -f $apache2/ssl/MISP2_CA_cert.pem ]
-		then cp $apache2/ssl/MISP2_CA_cert.pem $tomcat_home/webapps/$app_name/WEB-INF/classes/certs/MISP2_CA_cert.pem
+		then cp $apache2/ssl/MISP2_CA_cert.pem $misp2_tomcat_resources/certs/MISP2_CA_cert.pem
 		echo "Copying certificates 1" >> /dev/stderr
 	fi
 	if [ -f $apache2/ssl/MISP2_CA_key.pem ]
-		then cp $apache2/ssl/MISP2_CA_key.pem $tomcat_home/webapps/$app_name/WEB-INF/classes/certs/MISP2_CA_key.pem
+		then cp $apache2/ssl/MISP2_CA_key.pem $misp2_tomcat_resources/certs/MISP2_CA_key.pem
 	fi
 	if [ -f $apache2/ssl/MISP2_CA_key.der ]
-		then cp $apache2/ssl/MISP2_CA_key.der $tomcat_home/webapps/$app_name/WEB-INF/classes/certs/MISP2_CA_key.der
+		then cp $apache2/ssl/MISP2_CA_key.der $misp2_tomcat_resources/certs/MISP2_CA_key.der
 	fi
 	if [ $exit1 -ne 0 -o $exit2 -ne 0 ]
 	then
@@ -694,4 +739,4 @@ fi
 
 echo "Successfully installed application $app_name" >> /dev/stderr
 echo "You can change the configuration of application later by editing this file: " >> /dev/stderr
-echo "$tomcat_home/webapps/$app_name/WEB-INF/classes/config.cfg" >> /dev/stderr
+echo "$misp2_tomcat_resources/config.cfg" >> /dev/stderr
