@@ -205,12 +205,7 @@ function add_trusted_apache_certs_to_jks_store
 	standard_trust_store_pwd="$username_pass"
 
 	apache_cert_files=$(find ${apache2}/ssl/ -regex .*trusted_crt.pem)
-	if [ -z "$apache_cert_files" ];
-	do
-
-	done
-
-	# import certs to trust store to MISP2 deployment directory
+	
 	for apache_cert_file in $apache_cert_files
 	do
 
