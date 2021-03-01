@@ -241,8 +241,6 @@ if [ "$skip_estonian" != "y" ] &&  $(echo $sk_certs | grep -iq y ) ; then
 		download_pem  sk_esteid_2015_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
 		download_pem  sk_esteid_2011_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
 
-		add_to_pkcs12_trust_store sk_root_2018 sk_root_2011 sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
-
 		setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011 ; 
 
 		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
