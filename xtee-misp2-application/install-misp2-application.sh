@@ -216,13 +216,13 @@ function add_trusted_apache_certs_to_jks_store
 				-noprompt -trustcacerts -alias ${cert_alias} \
 				-keystore ${mobile_id_truststore_file}.jks
 	done    
-	keytool -importkeystore -noprompt  \
+	[ -r ${mobile_id_truststore_file}.jks ] && keytool -importkeystore -noprompt  \
 			-srckeystore ${mobile_id_truststore_file}.jks -srcstoretype JKS \
 			-srcstorepass ${standard_trust_store_pwd} \
 			-destkeystore ${mobile_id_truststore_file}.p12 -deststoretype PKCS12 \
 			-deststorepass ${standard_trust_store_pwd}
 						
-	rm ${mobile_id_truststore_file}.jks
+	[ -r ${mobile_id_truststore_file}.jks ] && rm ${mobile_id_truststore_file}.jks
 }
 
 ##############################################
@@ -377,6 +377,7 @@ then
 		#cp /tmp/log4j.properties.bkp $misp2_tomcat_resources/log4j.properties 
 		#cp /tmp/context.xml.bkp $tomcat_home/webapps/$app_name/META-INF/context.xml - disabled since 1.24 because we want to make sure that context is correct
 		cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
+		add_trusted_apache_certs_to_jks_store
 	fi
 	
 ### replacing new key values in configuration
