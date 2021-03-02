@@ -202,7 +202,7 @@ function replace_conf_prop {
 function add_trusted_apache_certs_to_jks_store 
  {
 	mobile_id_truststore_file="$misp2_tomcat_resources/mobiili_id_trust_store"
-	standard_trust_store_pwd="$username_pass"
+	standard_trust_store_pwd="${username_pass:-secret}"
 
 	apache_cert_files=$(find ${apache2}/ssl/ -regex .*trusted_crt.pem)
 	
