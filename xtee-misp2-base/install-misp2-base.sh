@@ -179,8 +179,8 @@ fi
 # sk_certs="${RET}"
 
 sk_certs=y
-[ ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
+[ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
+if [ "$skip_estonian" != "y" ] &&  $(echo $sk_certs | grep -iq y ) ; then
     
 	function download_pem {
 		local pem_path="$1"
@@ -230,6 +230,7 @@ if [ "$skip_estonian" != "y" ] && [ $(echo $sk_certs | grep -iq true) ]; then
 
 	}
 
+	
 	if [ `echo $sk_certs | grep -i y ` ]
 	then
 
