@@ -5,12 +5,14 @@
 # Copyright (c) 2020- Nordic Institute for Interoperability Solutions (NIIS)
 # Aktors (c) 2016
 
-
 set -e
 
 # Source debconf library.
 . /usr/share/debconf/confmodule
-if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then
+    set -v -x
+    DEBIAN_SCRIPT_TRACE=1
+fi
 
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
@@ -32,23 +34,23 @@ sk_certs=y
 skip_estonian=n
 # for CI build we reconfigure ssl.conf anyhow
 apache2_overwrite_confirmation=y
-
-
 # CI detection
 ci_setup=n
-if [ -a /tmp/ci_installation ]
-then
-	echo "CI setup noticed" >> /dev/stderr
-	ci_setup=y
-
+if [ -a /tmp/ci_installation ]; then
+    echo "CI setup noticed" >> /dev/stderr
+    ci_setup=y
+fi
+# apache config already installed ?
+apache_ssl_config_exists=""
+if [ -f $apache2_home/sites-available/ssl.conf ]; then
+    apache_ssl_config_exists="true"
 fi
 
-function ci_fails {
-	if [ "$ci_setup" == "y" ]
-	then
-		echo "CI setup fails ... $1"
-		exit 1 
-	fi
+function ci_fails() {
+    if [ "$ci_setup" == "y" ]; then
+        echo "CI setup fails ... $1"
+        exit 1
+    fi
 }
 
 # Check if Apache 2 server is running. If it's not, attempt to start.
@@ -59,7 +61,7 @@ while ! /etc/init.d/apache2 status > /dev/null; do # do not show output, too ver
     status_adverb=" now"
     sleep 1
 done
-#echo "Apache2 service is$status_adverb running."
+echo "Apache2 service is$status_adverb running."
 
 if [ -f /etc/default/tomcat8 ]; then
     grep -q -e 'MaxPermSize' /etc/default/tomcat8 || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g -Xmx1g -XX:MaxPermSize=256m"' >> /etc/default/tomcat8
@@ -88,9 +90,9 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
-if [ -f $apache2_home/sites-available/ssl.conf ]; then
+if [ -n "${apache_ssl_config_exists}" ]; then
 
-    if [ $(echo $apache2_overwrite_confirmation | grep -iq true) ]; then
+    if echo $apache2_overwrite_confirmation | grep -iq true; then
         sed -n '/\/\*\/admin/, /\/Location/p' $apache2_home/sites-available/ssl.conf | grep Allow > /tmp/ssl.allowed.tmp
         sed -i '/\/\*\/admin/, /\/Location/p {
 		 /Allow./{
@@ -137,7 +139,7 @@ if [ -f $tomcat_server_xml ]; then
             echo "AJP address already configured." >> /dev/null
         fi
     else
-        echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access."  >> /dev/stderr
+        echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access." >> /dev/stderr
     fi
 else
     echo "ERROR: Could not find '$tomcat_server_xml' file. Cannot configure AJP local access." >> /dev/stderr
@@ -187,89 +189,80 @@ fi
 # db_get xtee-misp2-base/sk_certificate_update_confirm
 # sk_certs="${RET}"
 
-
 [ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] &&  $(echo $sk_certs | grep -iq y ) ; then
-    
-	function download_pem {
-		local pem_path="$1"
-		local pem_url="$2"
+if [ "$skip_estonian" != "y" ] && $(echo $sk_certs | grep -iq y); then
 
-		wget -O "$pem_path" "$pem_url"
+    function download_pem() {
+        local pem_path="$1"
+        local pem_url="$2"
 
-		local wget_result="$?"
-		if [ "$wget_result" != "0" ]
-		then
-			echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $wget_result)." >> /dev/stderr
-			exit 1
-		elif ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE")
-		then
-			echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
-			exit 2
-		fi
-		return 0
-	}
+        wget -O "$pem_path" "$pem_url"
 
-	function setup_client_auth_root_certificates {
-		echo "Updating client root certificates... "
-		client_root_ca_path=$apache2_home/ssl/client_ca
-		if [ ! -d $client_root_ca_path ]
-		then 
-			mkdir $client_root_ca_path
-		fi
-		for cert in "$@"
-		do
-			downloaded_cert=${cert}_crt.pem
-			auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
-			cp -v  ${downloaded_cert} $client_root_ca_path
-			openssl x509 -addtrust clientAuth -trustout -in ${downloaded_cert} \
-			              -out ${auth_trusted_cert}
-			rm -v ${downloaded_cert}
-		done
-		c_rehash  $client_root_ca_path/
-	}
+        local wget_result="$?"
+        if [ "$wget_result" != "0" ]; then
+            echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $wget_result)." >> /dev/stderr
+            exit 1
+        elif ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE"); then
+            echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
+            exit 2
+        fi
+        return 0
+    }
 
-	function  remove_client_auth_trust {
-		for root_cert in "$@"
-		do
-			openssl x509 -addreject clientAuth -trustout -in ${root_cert}_crt.pem \
-			              -out ${root_cert}_CA_trusted_crt.pem
-			rm ${root_cert}_crt.pem
-		done
+    function setup_client_auth_root_certificates() {
+        echo "Updating client root certificates... "
+        client_root_ca_path=$apache2_home/ssl/client_ca
+        if [ ! -d $client_root_ca_path ]; then
+            mkdir $client_root_ca_path
+        fi
+        for cert in "$@"; do
+            downloaded_cert=${cert}_crt.pem
+            auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
+            cp -v ${downloaded_cert} $client_root_ca_path
+            openssl x509 -addtrust clientAuth -trustout -in ${downloaded_cert} \
+                -out ${auth_trusted_cert}
+            rm -v ${downloaded_cert}
+        done
+        c_rehash $client_root_ca_path/
+    }
 
-	}
+    function remove_client_auth_trust() {
+        for root_cert in "$@"; do
+            openssl x509 -addreject clientAuth -trustout -in ${root_cert}_crt.pem \
+                -out ${root_cert}_CA_trusted_crt.pem
+            rm ${root_cert}_crt.pem
+        done
 
-	
-	if [ `echo $sk_certs | grep -i y ` ]
-	then
+    }
 
-		echo "Downloading root certificates... "
-		download_pem  sk_root_2018_crt.pem    https://c.sk.ee/EE-GovCA2018.pem.crt
-		download_pem  sk_root_2011_crt.pem    https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
-		download_pem  sk_esteid_2018_crt.pem  https://c.sk.ee/esteid2018.pem.crt
-		download_pem  sk_esteid_2015_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
-		download_pem  sk_esteid_2011_crt.pem  https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
+    if [ $(echo $sk_certs | grep -i y) ]; then
 
-		setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011 ; 
+        echo "Downloading root certificates... "
+        download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
+        download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
+        download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
+        download_pem sk_esteid_2015_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
+        download_pem sk_esteid_2011_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
 
-		remove_client_auth_trust sk_root_2018 sk_root_2011 ;
+        setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
 
-		# OCSP refresh
-		echo "Downloading OCSP certs... "
-		download_pem  sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
+        remove_client_auth_trust sk_root_2018 sk_root_2011
 
-		cat sk_esteid_ocsp_2011.pem > sk_esteid_ocsp.pem
-		rm -f sk_esteid_ocsp_2011.pem
+        # OCSP refresh
+        echo "Downloading OCSP certs... "
+        download_pem sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
 
-		# update crl 
-		./updatecrl.sh "norestart"
-		if [ "$?" != "0" ]
-		then
-			echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
-			exit 3
-		fi
+        cat sk_esteid_ocsp_2011.pem > sk_esteid_ocsp.pem
+        rm -f sk_esteid_ocsp_2011.pem
 
-	fi
+        # update crl
+        ./updatecrl.sh "norestart"
+        if [ "$?" != "0" ]; then
+            echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
+            exit 3
+        fi
+
+    fi
 fi
 #echo "Rehashing Apache symbolic links at $(pwd)."
 c_rehash ./
