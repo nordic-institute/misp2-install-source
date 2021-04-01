@@ -14,6 +14,27 @@ if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
+#
+# installation locations
+#
+
+xrd_prefix=/usr/xtee
+tomcat_home=/var/lib/tomcat8
+tomcat_share_home=/usr/share/tomcat8
+apache2_home=/etc/apache2
+mod-jk_home=/etc/libapache2-mod-jk
+
+#
+# installation choices (candidates for debconf handling)
+#
+sk_certs=y
+# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
+skip_estonian=n
+# for CI build we reconfigure ssl.conf anyhow
+apache2_overwrite_confirmation=y
+
+
+# CI detection
 ci_setup=n
 if [ -a /tmp/ci_installation ]
 then
@@ -29,13 +50,6 @@ function ci_fails {
 		exit 1 
 	fi
 }
-
-xrd_prefix=/usr/xtee
-tomcat_home=/var/lib/tomcat8
-tomcat_share_home=/usr/share/tomcat8
-apache2_home=/etc/apache2
-# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
-skip_estonian=n
 
 # Check if Apache 2 server is running. If it's not, attempt to start.
 status_adverb=
@@ -74,11 +88,6 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
-# TODO:  db-conf support missing until MISPDEV-19
-#db_get xtee-misp2-base/apache2_overwrite_confirmation
-# apache2_overwrite_confirmation="${RET}"
-# for CI build we reconfigure ssl.conf anyhow
-apache2_overwrite_confirmation=y
 if [ -f $apache2_home/sites-available/ssl.conf ]; then
 
     if [ $(echo $apache2_overwrite_confirmation | grep -iq true) ]; then
@@ -101,7 +110,7 @@ fi
 
 ## AJP local access
 # Only enable AJP protocol access from localhost to mitigate GhostCat vulnerability
-workers_conf="/etc/libapache2-mod-jk/workers.properties"
+workers_conf="${mod-jk_home}/workers.properties"
 tomcat_server_xml="$tomcat_home/conf/server.xml"
 if [ -f $workers_conf ]; then
     regex_apache_ajp_host_localhost='(\s*worker[.]ajp13_worker[.]host\s*)=\s*localhost'
@@ -178,7 +187,7 @@ fi
 # db_get xtee-misp2-base/sk_certificate_update_confirm
 # sk_certs="${RET}"
 
-sk_certs=y
+
 [ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
 if [ "$skip_estonian" != "y" ] &&  $(echo $sk_certs | grep -iq y ) ; then
     
