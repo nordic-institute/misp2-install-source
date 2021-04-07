@@ -1,24 +1,36 @@
 #!/bin/bash
-apache2=/etc/apache2
-cname="$apache2/ssl/httpsd"; export cname
-#cd $apache2/ssl
-IPID=$$; export IPID
-cp /dev/null /tmp/index.$IPID.txt
+set -e
+set -x
+misp2_apache_path="$1"
+cname="$misp2_apache_path/httpsd"
+certfile="$cname.cert"
+keyfile="$cname.key"
+config_file="$misp2_apache_path/misp2.cnf"
 
-if [ "$hostname" == "" ]
-then
-    COMMONNAME=`hostname -f`; export COMMONNAME
-else
-    COMMONNAME=$hostname; export COMMONNAME
-fi
-openssl req -new -x509 -days 3000 -config misp2.cnf -nodes -out $cname.cert -keyout $cname.key -batch
-rm /tmp/index.$IPID.txt
+cd "$misp2_apache_path"
+[[ -f "$config_file" ]] || {
+    echo "Missing $config_file"
+    exit 1
+}
+
+# exports for config file
+CA_DIR="${misp2_apache_path}"
+export CA_DIR
+
+COMMONNAME=$(hostname -f)
+export COMMONNAME
+
+TMPINDEX=$(mktemp --tmpdir index_server.XXXXXX.txt)
+export TMPINDEX
+
+openssl req -new -x509 -days 3000 -config "$config_file" -nodes -out "${certfile}" -keyout "$keyfile" -batch
+rm "${TMPINDEX}"
 
 # create DH params and append DH parmas to cerificate(https://weakdh.org/sysadmin.html)
 openssl dhparam -out dhparams.pem 2048
-cat $cname.cert dhparams.pem > new.cert
-mv new.cert $cname.cert
+cert_temp=$(mktemp cname.XXXXXX.cert)
+cat "${certfile}" dhparams.pem > "$cert_temp"
+mv "$cert_temp" "${certfile}"
 # Limit private key access rights to -r--------
-chmod 400 $cname.key
-
-
+chmod 400 "${keyfile}"
+set +x

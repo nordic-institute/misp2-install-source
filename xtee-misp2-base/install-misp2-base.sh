@@ -193,13 +193,11 @@ arrange_apache_setup_utils_from_to $xrd_apache_home $apache2_misp2_home
 cd $apache2_misp2_home
 
 if [[ ! -f $apache2_misp2_home/ca.crl || ! -f $apache2_misp2_home/MISP2_CA_key.der ]]; then
-    #echo "Creating CA certificate... "
     ./create_ca_cert.sh $apache2_misp2_home
 fi
 
 if [[ ! -f $apache2_misp2_home/httpsd.cert || ! -f $apache2_misp2_home/httpsd.key ]]; then
-    #echo "Creating server certificate... "
-    ./create_server_cert.sh
+    ./create_server_cert.sh $apache2_misp2_home
 fi
 
 key_access_rights="$(ls -l $apache2_misp2_home/httpsd.key | cut -c 1-10)"
