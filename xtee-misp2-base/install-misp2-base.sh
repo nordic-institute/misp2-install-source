@@ -149,6 +149,47 @@ function arrange_apache_setup_utils_from_to() {
     chmod 755 "$xrd_apache_path/cleanXFormsDir.sh"
 }
 
+function download_pem() {
+    local pem_path="$1"
+    local pem_url="$2"
+
+    if ! wget -O "$pem_path" "$pem_url"; then
+        echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $?)." >> /dev/stderr
+        exit 1
+    fi
+    if ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE"); then
+        echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
+        exit 2
+    fi
+    return 0
+}
+
+function setup_client_auth_root_certificates() {
+    echo "Updating client root certificates... "
+    client_root_ca_path=$apache2_misp2_home/client_ca
+    if [ ! -d $client_root_ca_path ]; then
+        mkdir $client_root_ca_path
+    fi
+    for cert in "$@"; do
+        downloaded_cert=${cert}_crt.pem
+        auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
+        cp -v "${downloaded_cert}" $client_root_ca_path
+        openssl x509 -addtrust clientAuth -trustout -in "${downloaded_cert}" \
+            -out "${auth_trusted_cert}"
+        rm -v "${downloaded_cert}"
+    done
+    c_rehash $client_root_ca_path/
+}
+
+function remove_client_auth_trust() {
+    for root_cert in "$@"; do
+        openssl x509 -addreject clientAuth -trustout -in "${root_cert}"_crt.pem \
+            -out "${root_cert}"_CA_trusted_crt.pem
+        rm "${root_cert}"_crt.pem
+    done
+
+}
+
 #
 #   post-install begins
 #
@@ -202,89 +243,36 @@ fi
 #   Changing server private key access rights to -r-------- if any rights are given to group or others
 find $apache2_misp2_home -type f -name httpsd.key -perm /077 -exec chmod --verbose 400 \{\} \;
 
-# Only prompt when estonian portal related questions are not skipped
-# TODO:  db-conf support missing until MISPDEV-19
-# db_get xtee-misp2-base/sk_certificate_update_confirm
-# sk_certs="${RET}"
+[[ $ci_setup == "y" ]] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
+if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
+    echo "Downloading root certificates... "
+    download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
+    download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
+    download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
+    download_pem sk_esteid_2015_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
+    download_pem sk_esteid_2011_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
 
-[ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] && echo $sk_certs | grep -iq y; then
+    setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
 
-    function download_pem() {
-        local pem_path="$1"
-        local pem_url="$2"
+    remove_client_auth_trust sk_root_2018 sk_root_2011
 
-        wget -O "$pem_path" "$pem_url"
+    # OCSP refresh
+    echo "Downloading OCSP certs... "
+    download_pem sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
 
-        local wget_result="$?"
-        if [ "$wget_result" != "0" ]; then
-            echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $wget_result)." >> /dev/stderr
-            exit 1
-        elif ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE"); then
-            echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
-            exit 2
-        fi
-        return 0
-    }
+    mv sk_esteid_ocsp_2011.pem sk_esteid_ocsp.pem
 
-    function setup_client_auth_root_certificates() {
-        echo "Updating client root certificates... "
-        client_root_ca_path=$apache2_misp2_home/client_ca
-        if [ ! -d $client_root_ca_path ]; then
-            mkdir $client_root_ca_path
-        fi
-        for cert in "$@"; do
-            downloaded_cert=${cert}_crt.pem
-            auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
-            cp -v "${downloaded_cert}" $client_root_ca_path
-            openssl x509 -addtrust clientAuth -trustout -in "${downloaded_cert}" \
-                -out "${auth_trusted_cert}"
-            rm -v "${downloaded_cert}"
-        done
-        c_rehash $client_root_ca_path/
-    }
+    # update crl
 
-    function remove_client_auth_trust() {
-        for root_cert in "$@"; do
-            openssl x509 -addreject clientAuth -trustout -in "${root_cert}"_crt.pem \
-                -out "${root_cert}"_CA_trusted_crt.pem
-            rm "${root_cert}"_crt.pem
-        done
-
-    }
-
-    if echo $sk_certs | grep -iq y; then
-
-        echo "Downloading root certificates... "
-        download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
-        download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
-        download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
-        download_pem sk_esteid_2015_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2015.pem.crt
-        download_pem sk_esteid_2011_crt.pem https://www.sk.ee/upload/files/ESTEID-SK_2011.pem.crt
-
-        setup_client_auth_root_certificates sk_esteid_2018 sk_esteid_2015 sk_esteid_2011
-
-        remove_client_auth_trust sk_root_2018 sk_root_2011
-
-        # OCSP refresh
-        echo "Downloading OCSP certs... "
-        download_pem sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
-
-        cat sk_esteid_ocsp_2011.pem > sk_esteid_ocsp.pem
-        rm -f sk_esteid_ocsp_2011.pem
-
-        # update crl
-
-        if ! ./updatecrl.sh "norestart"; then
-            echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
-            exit 3
-        fi
-
+    if ! ./updatecrl.sh "norestart"; then
+        echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
+        exit 3
     fi
 fi
-#echo "Rehashing Apache symbolic links at $(pwd)."
+
+# Rehashing Apache symbolic links at $(pwd).
 c_rehash ./
 
-/etc/init.d/apache2 restart
+/usr/sbin/invoke-rc.d apache2 restart
 
 #echo "Successfully installed xtee-misp2-base package"
