@@ -199,12 +199,8 @@ fi
 if [[ ! -f $apache2_misp2_home/httpsd.cert || ! -f $apache2_misp2_home/httpsd.key ]]; then
     ./create_server_cert.sh $apache2_misp2_home
 fi
-
-key_access_rights="$(ls -l $apache2_misp2_home/httpsd.key | cut -c 1-10)"
-if [[ "$key_access_rights" == "-rw-r--r--" ]]; then # compare to default access rights
-    #echo "Changing server private key access rights to -r-------- (previously $key_access_rights)."
-    chmod 400 $apache2_misp2_home/httpsd.key
-fi
+#   Changing server private key access rights to -r-------- if any rights are given to group or others
+find $apache2_misp2_home -type f -name httpsd.key -perm /077 -exec chmod --verbose 400 \{\} \;
 
 # Only prompt when estonian portal related questions are not skipped
 # TODO:  db-conf support missing until MISPDEV-19
