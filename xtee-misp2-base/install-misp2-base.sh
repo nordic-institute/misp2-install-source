@@ -46,7 +46,7 @@ apache_ssl_config_exists=n
 if [ -f $apache2_home/sites-available/ssl.conf ]; then
     apache_ssl_config_exists=y
 else
-    # for no MISP2 apache config exists yet, it means we don't need to overwrite it. 
+    # for no MISP2 apache config exists yet, it means we don't need to overwrite it.
     apache2_overwrite_confirmation=n
 fi
 
@@ -93,15 +93,12 @@ function etc_default_tomcat_java_variables_for_misp2() {
 function transfer_admin_access_ip_to_apache_setup_template() {
     local ssl_tmp
     ssl_tmp=$(mktemp --tmpdir ssl.allow.XXXXX)
-    echo "tmp dir:${ssl_tmp}"
-    set -x
     sed -n '/\/\*\/admin/, /\/Location/p' $apache2_home/sites-available/ssl.conf | grep Allow > "${ssl_tmp}"
     sed -i "/\/\*\/admin/, /\/Location/ { /Allow./{ \
                                                     s/.//g
                                                     r ${ssl_tmp}
                                                    } }" $xrd_prefix/apache2/ssl.conf
-    #rm "$ssl_tmp";
-    set +x
+    rm "$ssl_tmp"
 }
 
 function configure_ajp_local_access_mod_jk_properties() {
@@ -134,6 +131,26 @@ function configure_ajp_local_access_tomcat_server_xml() {
     fi
 }
 
+function arrange_apache_setup_utils_from_to() {
+    local xrd_prefix_path apache2_misp2_path
+    xrd_prefix_path="$1"
+    apache2_misp2_path="$2"
+    if [ ! -d "$apache2_misp2_path" ]; then
+        mkdir "$apache2_misp2_path"
+    fi
+
+    cp "$xrd_prefix_path/apache2/updatecrl.sh" "$apache2_misp2_path"
+    cp "$xrd_prefix_path/apache2/create_ca_cert.sh" "$apache2_misp2_path"
+    cp "$xrd_prefix_path/apache2/create_server_cert.sh" "$apache2_misp2_path"
+    cp "$xrd_prefix_path/apache2/misp2.cnf" "$apache2_misp2_path"
+    cp "$xrd_prefix_path/apache2/create_sslproxy_cert.sh" "$apache2_misp2_path"
+
+    chmod 755 "$xrd_prefix_path/apache2/cleanXFormsDir.sh"
+    pushd "$apache2_misp2_path" > /dev/null
+    chmod 755 create_*_cert.sh
+    popd > /dev/null
+}
+
 #
 #   post-install begins
 #
@@ -155,7 +172,7 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 a2enmod jk rewrite ssl headers proxy_http
 
 if [ "${apache2_overwrite_confirmation}" == "y" ]; then
-        transfer_admin_access_ip_to_apache_setup_template      
+    transfer_admin_access_ip_to_apache_setup_template
 fi
 
 cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
@@ -172,33 +189,19 @@ configure_ajp_local_access_tomcat_server_xml "$tomcat_home/conf/server.xml"
 
 #certs
 #echo "Updating certificate scripts... "
-if [ ! -d $apache2_home/ssl ]; then
-    mkdir $apache2_home/ssl
-fi
+
+arrange_apache_setup_utils_from_to $xrd_prefix $apache2_home/ssl
 
 cd $apache2_home/ssl
-
-cp $xrd_prefix/apache2/updatecrl.sh $apache2_home/ssl
-cp $xrd_prefix/apache2/create_ca_cert.sh $apache2_home/ssl
-cp $xrd_prefix/apache2/create_server_cert.sh $apache2_home/ssl
-cp $xrd_prefix/apache2/misp2.cnf $apache2_home/ssl
-cp $xrd_prefix/apache2/create_sslproxy_cert.sh $apache2_home/ssl
-
-chmod 755 $xrd_prefix/apache2/cleanXFormsDir.sh
-chmod 755 create_*_cert.sh
 
 if [[ ! -f $apache2_home/ssl/ca.crl || ! -f $apache2_home/ssl/MISP2_CA_key.der ]]; then
     #echo "Creating CA certificate... "
     ./create_ca_cert.sh
-else
-    echo "CA certificate already created... " >> /dev/null
 fi
 
 if [[ ! -f $apache2_home/ssl/httpsd.cert || ! -f $apache2_home/ssl/httpsd.key ]]; then
     #echo "Creating server certificate... "
     ./create_server_cert.sh
-else
-    echo "Server certificate already created... " >> /dev/null
 fi
 
 key_access_rights="$(ls -l $apache2_home/ssl/httpsd.key | cut -c 1-10)"
@@ -241,19 +244,19 @@ if [ "$skip_estonian" != "y" ] && echo $sk_certs | grep -iq y; then
         for cert in "$@"; do
             downloaded_cert=${cert}_crt.pem
             auth_trusted_cert=${cert}_client_auth_trusted_crt.pem
-            cp -v ${downloaded_cert} $client_root_ca_path
-            openssl x509 -addtrust clientAuth -trustout -in ${downloaded_cert} \
-                -out ${auth_trusted_cert}
-            rm -v ${downloaded_cert}
+            cp -v "${downloaded_cert}" $client_root_ca_path
+            openssl x509 -addtrust clientAuth -trustout -in "${downloaded_cert}" \
+                -out "${auth_trusted_cert}"
+            rm -v "${downloaded_cert}"
         done
         c_rehash $client_root_ca_path/
     }
 
     function remove_client_auth_trust() {
         for root_cert in "$@"; do
-            openssl x509 -addreject clientAuth -trustout -in ${root_cert}_crt.pem \
-                -out ${root_cert}_CA_trusted_crt.pem
-            rm ${root_cert}_crt.pem
+            openssl x509 -addreject clientAuth -trustout -in "${root_cert}"_crt.pem \
+                -out "${root_cert}"_CA_trusted_crt.pem
+            rm "${root_cert}"_crt.pem
         done
 
     }
