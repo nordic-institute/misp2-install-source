@@ -26,6 +26,8 @@ tomcat_home=/var/lib/tomcat8
 tomcat_defaults=/etc/default/tomcat8
 apache2_home=/etc/apache2
 mod_jk_home=/etc/libapache2-mod-jk
+apache2_misp2_home=${apache2_home}/ssl
+xrd_apache_home=${xrd_prefix}/apache2
 
 #
 # installation choices (candidates for debconf handling)
@@ -97,7 +99,7 @@ function transfer_admin_access_ip_to_apache_setup_template() {
     sed -i "/\/\*\/admin/, /\/Location/ { /Allow./{ \
                                                     s/.//g
                                                     r ${ssl_tmp}
-                                                   } }" $xrd_prefix/apache2/ssl.conf
+                                                   } }" $xrd_apache_home/ssl.conf
     rm "$ssl_tmp"
 }
 
@@ -132,23 +134,20 @@ function configure_ajp_local_access_tomcat_server_xml() {
 }
 
 function arrange_apache_setup_utils_from_to() {
-    local xrd_prefix_path apache2_misp2_path
-    xrd_prefix_path="$1"
+    local xrd_apache_path apache2_misp2_path apache_util_files
+    xrd_apache_path="$1"
     apache2_misp2_path="$2"
-    if [ ! -d "$apache2_misp2_path" ]; then
-        mkdir "$apache2_misp2_path"
-    fi
+    apache_util_files="updatecrl.sh reate_ca_cert.sh create_server_cert.sh create_sslproxy_cert.sh misp2.cnf"
+    set -x 
+    [[ ! -d "$apache2_misp2_path" ]] &&  mkdir -p "$apache2_misp2_path"
 
-    cp "$xrd_prefix_path/apache2/updatecrl.sh" "$apache2_misp2_path"
-    cp "$xrd_prefix_path/apache2/create_ca_cert.sh" "$apache2_misp2_path"
-    cp "$xrd_prefix_path/apache2/create_server_cert.sh" "$apache2_misp2_path"
-    cp "$xrd_prefix_path/apache2/misp2.cnf" "$apache2_misp2_path"
-    cp "$xrd_prefix_path/apache2/create_sslproxy_cert.sh" "$apache2_misp2_path"
-
-    chmod 755 "$xrd_prefix_path/apache2/cleanXFormsDir.sh"
-    pushd "$apache2_misp2_path" > /dev/null
-    chmod 755 create_*_cert.sh
-    popd > /dev/null
+    for file in ${apache_util_files}
+    do
+        cp -v "$xrd_apache_path/$file" "$apache2_misp2_path"
+        [[ "$file" == *.sh ]] && chmod 755 "$apache2_misp2_path/$file"
+    done
+    chmod 755 "$xrd_apache_path/cleanXFormsDir.sh"
+    set +x
 }
 
 #
@@ -161,13 +160,13 @@ if [ -f ${tomcat_defaults} ]; then
 fi
 
 #replace server.xml
-cp $xrd_prefix/apache2/server.xml $tomcat_home/conf/
+cp $xrd_apache_home/server.xml $tomcat_home/conf/
 #remove tomcat ROOT app in case it is not webapp itself
 if [ ! -f $tomcat_home/webapps/ROOT/WEB-INF/classes/config.cfg ]; then
     rm -rf $tomcat_home/webapps/ROOT
 fi
 ### add mod-jk.conf
-cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
+cp $xrd_apache_home/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
@@ -175,7 +174,7 @@ if [ "${apache2_overwrite_confirmation}" == "y" ]; then
     transfer_admin_access_ip_to_apache_setup_template
 fi
 
-cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
+cp $xrd_apache_home/ssl.conf $apache2_home/sites-available/ssl.conf
 
 if [ "${apache_ssl_config_exists}" != "y" ]; then
     a2ensite ssl.conf
@@ -190,24 +189,24 @@ configure_ajp_local_access_tomcat_server_xml "$tomcat_home/conf/server.xml"
 #certs
 #echo "Updating certificate scripts... "
 
-arrange_apache_setup_utils_from_to $xrd_prefix $apache2_home/ssl
+arrange_apache_setup_utils_from_to $xrd_apache_home $apache2_misp2_home
 
-cd $apache2_home/ssl
+cd $apache2_misp2_home
 
-if [[ ! -f $apache2_home/ssl/ca.crl || ! -f $apache2_home/ssl/MISP2_CA_key.der ]]; then
+if [[ ! -f $apache2_misp2_home/ca.crl || ! -f $apache2_misp2_home/MISP2_CA_key.der ]]; then
     #echo "Creating CA certificate... "
     ./create_ca_cert.sh
 fi
 
-if [[ ! -f $apache2_home/ssl/httpsd.cert || ! -f $apache2_home/ssl/httpsd.key ]]; then
+if [[ ! -f $apache2_misp2_home/httpsd.cert || ! -f $apache2_misp2_home/httpsd.key ]]; then
     #echo "Creating server certificate... "
     ./create_server_cert.sh
 fi
 
-key_access_rights="$(ls -l $apache2_home/ssl/httpsd.key | cut -c 1-10)"
+key_access_rights="$(ls -l $apache2_misp2_home/httpsd.key | cut -c 1-10)"
 if [[ "$key_access_rights" == "-rw-r--r--" ]]; then # compare to default access rights
     #echo "Changing server private key access rights to -r-------- (previously $key_access_rights)."
-    chmod 400 $apache2_home/ssl/httpsd.key
+    chmod 400 $apache2_misp2_home/httpsd.key
 fi
 
 # Only prompt when estonian portal related questions are not skipped
@@ -237,7 +236,7 @@ if [ "$skip_estonian" != "y" ] && echo $sk_certs | grep -iq y; then
 
     function setup_client_auth_root_certificates() {
         echo "Updating client root certificates... "
-        client_root_ca_path=$apache2_home/ssl/client_ca
+        client_root_ca_path=$apache2_misp2_home/client_ca
         if [ ! -d $client_root_ca_path ]; then
             mkdir $client_root_ca_path
         fi
