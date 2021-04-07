@@ -45,6 +45,9 @@ fi
 apache_ssl_config_exists=n
 if [ -f $apache2_home/sites-available/ssl.conf ]; then
     apache_ssl_config_exists=y
+else
+    # for no MISP2 apache config exists yet, it means we don't need to overwrite it. 
+    apache2_overwrite_confirmation=n
 fi
 
 #
@@ -134,7 +137,6 @@ function configure_ajp_local_access_tomcat_server_xml() {
 #
 #   post-install begins
 #
-echo "post-install begins"
 ensure_apache2_is_running
 
 if [ -f ${tomcat_defaults} ]; then
@@ -152,14 +154,13 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
-if [ "${apache_ssl_config_exists}" == "y" ]; then
-    if [ "${apache2_overwrite_confirmation}" == "y" ]; then
-        transfer_admin_access_ip_to_apache_setup_template
-        cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
-    fi
+if [ "${apache2_overwrite_confirmation}" == "y" ]; then
+        transfer_admin_access_ip_to_apache_setup_template      
+fi
 
-else
-    cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
+cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
+
+if [ "${apache_ssl_config_exists}" != "y" ]; then
     a2ensite ssl.conf
     a2dissite 000-default
 fi
