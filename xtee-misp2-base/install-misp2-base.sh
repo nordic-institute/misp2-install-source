@@ -8,6 +8,7 @@
 set -e
 
 # Source debconf library.
+# shellcheck source=/usr/share/debconf/confmodule
 . /usr/share/debconf/confmodule
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then
     set -v -x
@@ -22,9 +23,9 @@ ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
-tomcat_share_home=/usr/share/tomcat8
+tomcat_defaults=/etc/default/tomcat8
 apache2_home=/etc/apache2
-mod-jk_home=/etc/libapache2-mod-jk
+mod_jk_home=/etc/libapache2-mod-jk
 
 #
 # installation choices (candidates for debconf handling)
@@ -41,10 +42,14 @@ if [ -a /tmp/ci_installation ]; then
     ci_setup=y
 fi
 # apache config already installed ?
-apache_ssl_config_exists=""
+apache_ssl_config_exists=n
 if [ -f $apache2_home/sites-available/ssl.conf ]; then
-    apache_ssl_config_exists="true"
+    apache_ssl_config_exists=y
 fi
+
+#
+#  functions used by post-install
+#
 
 function ci_fails() {
     if [ "$ci_setup" == "y" ]; then
@@ -53,30 +58,87 @@ function ci_fails() {
     fi
 }
 
-# Check if Apache 2 server is running. If it's not, attempt to start.
-status_adverb=
-while ! /etc/init.d/apache2 status > /dev/null; do # do not show output, too verbose
-    #echo "Apache2 service is not running, attempting to start it."
-    /etc/init.d/apache2 start
-    status_adverb=" now"
-    sleep 1
-done
-echo "Apache2 service is$status_adverb running."
+function ensure_apache2_is_running() {
+    while ! /usr/sbin/invoke-rc.d apache2 status > /dev/null 2>&1; do
+        /usr/sbin/invoke-rc.d apache2 start > /dev/null
+        sleep 1
+    done
+}
 
-if [ -f /etc/default/tomcat8 ]; then
-    grep -q -e 'MaxPermSize' /etc/default/tomcat8 || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g -Xmx1g -XX:MaxPermSize=256m"' >> /etc/default/tomcat8
-    grep -q -e 'Xms1g' /etc/default/tomcat8 || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g"' >> /etc/default/tomcat8
-    grep -q -e 'Xms1g' /etc/default/tomcat8 || echo 'JAVA_OPTS="${JAVA_OPTS} -Xmx1g"' >> /etc/default/tomcat8
+function etc_default_tomcat_java_variables_for_misp2() {
+    local tomcat_defaults_file=$1
+    #shellcheck disable=SC2016
+    grep -q -e 'MaxPermSize' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g -Xmx1g -XX:MaxPermSize=256m"' >> "${tomcat_defaults_file}"
+    #shellcheck disable=SC2016
+    grep -q -e 'Xms1g' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g"' >> "${tomcat_defaults_file}"
+    #shellcheck disable=SC2016
+    grep -q -e 'Xms1g' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xmx1g"' >> "${tomcat_defaults_file}"
 
     # replace JAVA_HOME variable in tomcat8 configuration with environment variable if that exists
-    if [ -d "$JAVA_HOME" ] && grep -q '#JAVA_HOME' /etc/default/tomcat8; then
+    if [ -d "$JAVA_HOME" ] && grep -q '#JAVA_HOME' "${tomcat_defaults_file}"; then
         # regex replace
         #  - separator is ':'
         #  - only replace when JAVA_HOME is commented out like initially (#JAVA_HOME)
         #  - take replacement value from JAVA_HOME env variable and remove comment-out prefix #
         #  - g: replace all instances
-        sed -ie 's:#JAVA_HOME=.*:JAVA_HOME="'$JAVA_HOME'":g' /etc/default/tomcat8
+
+        #shellcheck disable=SC2086
+        sed -ie 's:#JAVA_HOME=.*:JAVA_HOME="'$JAVA_HOME'":g' "${tomcat_defaults_file}"
     fi
+}
+
+function transfer_admin_access_ip_to_apache_setup_template() {
+    local ssl_tmp
+    ssl_tmp=$(mktemp --tmpdir ssl.allow.XXXXX)
+    echo "tmp dir:${ssl_tmp}"
+    set -x
+    sed -n '/\/\*\/admin/, /\/Location/p' $apache2_home/sites-available/ssl.conf | grep Allow > "${ssl_tmp}"
+    sed -i "/\/\*\/admin/, /\/Location/ { /Allow./{ \
+                                                    s/.//g
+                                                    r ${ssl_tmp}
+                                                   } }" $xrd_prefix/apache2/ssl.conf
+    #rm "$ssl_tmp";
+    set +x
+}
+
+function configure_ajp_local_access_mod_jk_properties() {
+    local workers_conf
+    workers_conf="$1"
+    regex_apache_ajp_host_localhost='(\s*worker[.]ajp13_worker[.]host\s*)=\s*localhost'
+    if grep -Eq "$regex_apache_ajp_host_localhost" "$workers_conf"; then
+        perl -pi -e 's|'"$regex_apache_ajp_host_localhost"'|$1=127.0.0.1|g' "$workers_conf"
+        # echo "Configured Apache server AJP connection host to 127.0.0.1 in '$workers_conf'."
+    fi
+
+}
+
+function configure_ajp_local_access_tomcat_server_xml() {
+    local tomcat_server_xml
+    tomcat_server_xml="$1"
+    regex_ajp_connector='(\s*<Connector)(\s+.*protocol\s*=\s*"AJP/1.3".*)'
+    str_ajp_connector="$(grep -E "$regex_ajp_connector" "$tomcat_server_xml")"
+    if [ "$str_ajp_connector" != "" ]; then
+        if ! (echo "$str_ajp_connector" | grep -Eq 'address\s*=\s*'); then
+            perl -pi -e 's|'"$regex_ajp_connector"'|$1 address="127.0.0.1"$2|g' "$tomcat_server_xml"
+            /usr/sbin/invoke-rc.d tomcat8 restart
+        else
+            # Message is not shown (directed to sink),
+            # but may serve a purpose while debugging with bash -x
+            echo "AJP address already configured." >> /dev/null
+        fi
+    else
+        echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access." >> /dev/stderr
+    fi
+}
+
+#
+#   post-install begins
+#
+echo "post-install begins"
+ensure_apache2_is_running
+
+if [ -f ${tomcat_defaults} ]; then
+    etc_default_tomcat_java_variables_for_misp2 ${tomcat_defaults}
 fi
 
 #replace server.xml
@@ -90,21 +152,13 @@ cp $xrd_prefix/apache2/jk.conf $apache2_home/mods-available/
 ### enable mods (if not enabled yet)
 a2enmod jk rewrite ssl headers proxy_http
 
-if [ -n "${apache_ssl_config_exists}" ]; then
-
-    if echo $apache2_overwrite_confirmation | grep -iq true; then
-        sed -n '/\/\*\/admin/, /\/Location/p' $apache2_home/sites-available/ssl.conf | grep Allow > /tmp/ssl.allowed.tmp
-        sed -i '/\/\*\/admin/, /\/Location/p {
-		 /Allow./{
-		 s/.//g
-		 r /tmp/ssl.allowed.tmp
-		 }
-		}' $xrd_prefix/apache2/ssl.conf
+if [ "${apache_ssl_config_exists}" == "y" ]; then
+    if [ "${apache2_overwrite_confirmation}" == "y" ]; then
+        transfer_admin_access_ip_to_apache_setup_template
         cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
     fi
 
 else
-    # echo "Copying Apache2 server conf to $apache2_home/sites-available/ssl.conf..."
     cp $xrd_prefix/apache2/ssl.conf $apache2_home/sites-available/ssl.conf
     a2ensite ssl.conf
     a2dissite 000-default
@@ -112,40 +166,8 @@ fi
 
 ## AJP local access
 # Only enable AJP protocol access from localhost to mitigate GhostCat vulnerability
-workers_conf="${mod-jk_home}/workers.properties"
-tomcat_server_xml="$tomcat_home/conf/server.xml"
-if [ -f $workers_conf ]; then
-    regex_apache_ajp_host_localhost='(\s*worker[.]ajp13_worker[.]host\s*)=\s*localhost'
-    if grep -Eq "$regex_apache_ajp_host_localhost" $workers_conf; then
-        perl -pi -e 's|'"$regex_apache_ajp_host_localhost"'|$1=127.0.0.1|g' $workers_conf
-        # echo "Configured Apache server AJP connection host to 127.0.0.1 in '$workers_conf'."
-    fi
-else
-    echo "ERROR: Could not find '$workers_conf' file. Cannot configure AJP local access." >> /dev/stderr
-    exit 1
-fi
-if [ -f $tomcat_server_xml ]; then
-    regex_ajp_connector='(\s*<Connector)(\s+.*protocol\s*=\s*"AJP/1.3".*)'
-    str_ajp_connector="$(grep -E "$regex_ajp_connector" $tomcat_server_xml)"
-    if [ "$str_ajp_connector" != "" ]; then
-        if ! (echo "$str_ajp_connector" | grep -Eq 'address\s*=\s*'); then
-            perl -pi -e 's|'"$regex_ajp_connector"'|$1 address="127.0.0.1"$2|g' $tomcat_server_xml
-            #echo "Configured Tomcat server AJP connector address to 127.0.0.1 in '$tomcat_server_xml'."
-            #echo "Restarting Tomcat server."
-            service tomcat8 restart
-        else
-            # Message is not shown (directed to sink),
-            # but may serve a purpose while debugging with bash -x
-            echo "AJP address already configured." >> /dev/null
-        fi
-    else
-        echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access." >> /dev/stderr
-    fi
-else
-    echo "ERROR: Could not find '$tomcat_server_xml' file. Cannot configure AJP local access." >> /dev/stderr
-    exit 1
-fi
-## AJP local access ends
+configure_ajp_local_access_mod_jk_properties "${mod_jk_home}/workers.properties"
+configure_ajp_local_access_tomcat_server_xml "$tomcat_home/conf/server.xml"
 
 #certs
 #echo "Updating certificate scripts... "
@@ -190,7 +212,7 @@ fi
 # sk_certs="${RET}"
 
 [ $ci_setup == "y" ] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
-if [ "$skip_estonian" != "y" ] && $(echo $sk_certs | grep -iq y); then
+if [ "$skip_estonian" != "y" ] && echo $sk_certs | grep -iq y; then
 
     function download_pem() {
         local pem_path="$1"
@@ -235,7 +257,7 @@ if [ "$skip_estonian" != "y" ] && $(echo $sk_certs | grep -iq y); then
 
     }
 
-    if [ $(echo $sk_certs | grep -i y) ]; then
+    if echo $sk_certs | grep -iq y; then
 
         echo "Downloading root certificates... "
         download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
@@ -256,8 +278,8 @@ if [ "$skip_estonian" != "y" ] && $(echo $sk_certs | grep -iq y); then
         rm -f sk_esteid_ocsp_2011.pem
 
         # update crl
-        ./updatecrl.sh "norestart"
-        if [ "$?" != "0" ]; then
+
+        if ! ./updatecrl.sh "norestart"; then
             echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
             exit 3
         fi
