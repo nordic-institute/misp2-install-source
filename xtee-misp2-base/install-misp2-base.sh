@@ -137,17 +137,16 @@ function arrange_apache_setup_utils_from_to() {
     local xrd_apache_path apache2_misp2_path apache_util_files
     xrd_apache_path="$1"
     apache2_misp2_path="$2"
-    apache_util_files="updatecrl.sh reate_ca_cert.sh create_server_cert.sh create_sslproxy_cert.sh misp2.cnf"
-    set -x 
-    [[ ! -d "$apache2_misp2_path" ]] &&  mkdir -p "$apache2_misp2_path"
+    apache_util_files="updatecrl.sh create_ca_cert.sh create_server_cert.sh create_sslproxy_cert.sh misp2.cnf"
 
-    for file in ${apache_util_files}
-    do
-        cp -v "$xrd_apache_path/$file" "$apache2_misp2_path"
+    [[ ! -d "$apache2_misp2_path" ]] && mkdir -p "$apache2_misp2_path"
+
+    for file in ${apache_util_files}; do
+        cp "$xrd_apache_path/$file" "$apache2_misp2_path"
         [[ "$file" == *.sh ]] && chmod 755 "$apache2_misp2_path/$file"
     done
+
     chmod 755 "$xrd_apache_path/cleanXFormsDir.sh"
-    set +x
 }
 
 #
