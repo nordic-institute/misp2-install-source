@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -x
 misp2_apache_path="$1"
 cname="$misp2_apache_path/httpsd"
 certfile="$cname.cert"
@@ -33,4 +32,3 @@ cat "${certfile}" dhparams.pem > "$cert_temp"
 mv "$cert_temp" "${certfile}"
 # Limit private key access rights to -r--------
 chmod 400 "${keyfile}"
-set +x
