@@ -194,7 +194,7 @@ cd $apache2_misp2_home
 
 if [[ ! -f $apache2_misp2_home/ca.crl || ! -f $apache2_misp2_home/MISP2_CA_key.der ]]; then
     #echo "Creating CA certificate... "
-    ./create_ca_cert.sh
+    ./create_ca_cert.sh $apache2_misp2_home
 fi
 
 if [[ ! -f $apache2_misp2_home/httpsd.cert || ! -f $apache2_misp2_home/httpsd.key ]]; then

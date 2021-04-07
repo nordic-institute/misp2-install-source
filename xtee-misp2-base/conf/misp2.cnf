@@ -3,9 +3,8 @@
 HOME            = .
 #RANDFILE                = $ENV::HOME/.rnd
 
-pid           =   $ENV::IPID
-dir             = /etc/apache2
-ca_dir          = $dir/ssl
+database_file   = $ENV::TMPINDEX
+ca_dir          = $ENV::CA_DIR
 private_key     = $ca_dir/MISP2_CA_key.pem
 COMMONNAME      =
 
@@ -15,7 +14,7 @@ default_ca      = CA_default            # The default ca section
 [ CA_default ]
 certs           = $ca_dir/certs
 crl_dir         = $ca_dir/crl
-database        = /tmp/index.$pid.txt
+database        = $database_file
 new_certs_dir   = $ca_dir/newcerts
 
 certificate     = $ca_dir/MISP2_CA_cert.pem
