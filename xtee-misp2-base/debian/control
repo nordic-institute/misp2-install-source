@@ -2,7 +2,7 @@ Source: xtee-misp2-base
 Section: unknown
 Priority: optional
 Maintainer: NIIS <info@niis.org>
-Build-Depends: debhelper (>= 4.0.0)
+Build-Depends: debhelper (>= 11.0.0)
 Standards-Version: 3.6.1
 
 Package: xtee-misp2-base
