@@ -77,7 +77,7 @@ function etc_default_tomcat_java_variables_for_misp2() {
     #shellcheck disable=SC2016
     grep -q -e 'Xms1g' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1g"' >> "${tomcat_defaults_file}"
     #shellcheck disable=SC2016
-    grep -q -e 'Xms1g' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xmx1g"' >> "${tomcat_defaults_file}"
+    grep -q -e 'Xmx1g' "${tomcat_defaults_file}" || echo 'JAVA_OPTS="${JAVA_OPTS} -Xmx1g"' >> "${tomcat_defaults_file}"
 
     # replace JAVA_HOME variable in tomcat8 configuration with environment variable if that exists
     if [ -d "$JAVA_HOME" ] && grep -q '#JAVA_HOME' "${tomcat_defaults_file}"; then
