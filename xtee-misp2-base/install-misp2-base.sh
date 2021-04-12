@@ -191,8 +191,8 @@ function remove_client_auth_trust() {
 }
 
 function comment_out_SSLCADNRequestPath_apache_config() {
-    apache_misp2_conf="$apache2_misp2_home/sites-available/ssl.conf"
-    sed -e "s/^([ \t]*SSLCADNRequestPath.*)/#&1/" $apache_misp2_conf
+    apache_misp2_conf="$apache2_home/sites-available/ssl.conf"
+    sed --in-place --regexp-extended --expression="s/^([ \t]*SSLCADNRequestPath.*)/#&1/" $apache_misp2_conf
 }
 
 #
