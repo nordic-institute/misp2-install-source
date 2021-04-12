@@ -190,6 +190,11 @@ function remove_client_auth_trust() {
 
 }
 
+function comment_out_SSLCADNRequestPath_apache_config() {
+    apache_misp2_conf="$apache2_misp2_home/sites-available/ssl.conf"
+    sed -e "s/^([ \t]*SSLCADNRequestPath.*)/#&1/" $apache_misp2_conf
+}
+
 #
 #   post-install begins
 #
@@ -245,7 +250,7 @@ find $apache2_misp2_home -type f -name httpsd.key -perm /077 -exec chmod --verbo
 
 [[ $ci_setup == "y" ]] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
 if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
-    echo "Downloading root certificates... "
+    echo "Downloading Estonian root certificates... "
     download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
     download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
     download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
@@ -268,6 +273,9 @@ if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
         echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
         exit 3
     fi
+else
+    echo "No estonian MObiili-ID auth"
+    comment_out_SSLCADNRequestPath_apache_config
 fi
 
 # Rehashing Apache symbolic links at $(pwd).
