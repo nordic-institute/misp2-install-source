@@ -5,12 +5,12 @@
 # Copyright(c) 2020- NIIS <info@niis.org>
 # Copyright(c) Aktors 2016
 
-
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
 orbeon_deploy_dir=$tomcat_home/webapps/orbeon
 orbeon_config=$orbeon_deploy_dir/WEB-INF/resources/config
 orbeon_config_backup_dir=$(mktemp --directory --tmpdir orbeon_bck.XXXXXX)
+
 # If set to "true", Orbeon conf files properties-local.xml and log4j.xml are preserved after new webapp deployment
 # This can be used when there are no configuration changes within new Orbeon package.
 preserve_configuration=false
@@ -18,6 +18,11 @@ preserve_configuration=false
 #####################
 # Declare functions #
 #####################
+
+function clean_up() {
+	rm -rf "${orbeon_config_backup_dir}"
+}
+trap clean_up EXIT
 ##
 # @return success code (0) if Orbeon deployment directory with conf files exist
 #         failure code (1) if Orbeon deployment directory or conf files do not exist
@@ -110,7 +115,6 @@ function restore_orbeon_config {
 #####################################
 # Begin Orbeon package installation #
 #####################################
-# Check if Tomcat server is running. If it's not, attempt to start.
 
 if [ ! -d $tomcat_home/webapps ]
 then
@@ -136,13 +140,10 @@ wait_for_orbeon_undeployment
 cp $xrd_prefix/orbeon/orbeon.war $tomcat_home/webapps/
 wait_for_orbeon_deployment
 
-# Restore version for certain package versions, we dont want to restore for Orbeon version upgrade
 if [ "$preserve_configuration" == "true" ]
 then
 	restore_orbeon_config
 fi
-
-# Restart Tomcat
 
 /usr/sbin/invoke-rc.d tomcat8 restart       
 
