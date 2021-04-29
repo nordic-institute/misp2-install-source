@@ -329,37 +329,11 @@ then
 	perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/context.orig.xml
 	perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/admintool.sh
 
-	if is_misp2_ver_older_than "2.1.30"
-	then
-		remove_work_dir=true
-	else
-		remove_work_dir=false
-	fi
+
+	echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
+	rm -rf $tomcat_home/webapps/$app_name*
+	wait_for_misp2_undeployment
 	
-	if [ "$remove_work_dir" == true ]
-	then
-		# MISP2 version has older Struts version 2.3, meaning we need to clear Tomcat work directory
-		# of existing JSP-s before deploying Struts 2.5-based webapp. Otherwise Tomcat might not recompile them.
-		echo " ... Struts 2.5 migration detected ... " >> /dev/stderr
-		echo " === Undeploying previous version of MISP2 and clearing work directory. === " >> /dev/stderr
-		echo " ... Shutting down Tomcat to clear work directory. ... " >> /dev/stderr
-		/etc/init.d/tomcat8 stop
-		
-		echo " ... Removing $app_name from webapps directory ... " >> /dev/stderr
-		rm -rf $tomcat_home/webapps/$app_name*
-		
-		tomcat_work_dir="$tomcat_home/work/Catalina/localhost/$app_name"
-		echo " ... Clearing Tomcat work directory for $app_name at $tomcat_work_dir ... " >> /dev/stderr
-		rm -rf "$tomcat_work_dir"
-		
-		echo " ... Starting up Tomcat ... " >> /dev/stderr
-		/etc/init.d/tomcat8 start
-	else
-		# Normal use case, work directory is not cleared
-		echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
-		rm -rf $tomcat_home/webapps/$app_name*
-		wait_for_misp2_undeployment
-	fi	
 
 	echo " === Deploying new version of MISP2 web application === " >> /dev/stderr
 	cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
