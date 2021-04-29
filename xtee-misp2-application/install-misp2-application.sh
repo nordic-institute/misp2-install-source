@@ -317,8 +317,6 @@ if [ "$install_default" == "upgrade" ]; then
         cp /tmp/config.cfg.bkp $misp2_tomcat_resources/config.cfg
         cp /tmp/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
         cp /tmp/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
-        #cp /tmp/log4j.properties.bkp $misp2_tomcat_resources/log4j.properties
-        #cp /tmp/context.xml.bkp $tomcat_home/webapps/$app_name/META-INF/context.xml - disabled since 1.24 because we want to make sure that context is correct
         cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
         add_trusted_apache_certs_to_jks_store
     fi
@@ -573,21 +571,6 @@ if [ "$install_default" == "install" ]; then
         exit 1
     else
         echo "Configuration files created" >> /dev/stderr
-        echo -n "Do you want to add new administrator account? [y/n] [default: y] " >> /dev/stderr
-        if [ -z "$PS1" ]; then
-            # no admin account added in ci build
-            admin_add="n"
-        else
-            readadmin_add < /dev/tty
-        fi
-        if [ "$admin_add" == "" ]; then
-            admin_add="y"
-        fi
-        if [ $(echo $admin_add | grep -i y) ]; then
-            echo "Adding administrator account: " >> /dev/stderr
-            $xrd_prefix/app/admintool.sh -add
-            $xrd_prefix/app/configure_admin_interface_ip.sh change
-        fi
     fi
 fi
 
