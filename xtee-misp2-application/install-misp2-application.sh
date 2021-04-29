@@ -61,6 +61,7 @@ function misp2_deployed {
         && [[ -f $classes_dir/orgportal-conf.cfg ]] \
         && [[ -f $classes_dir/uniportal-conf.cfg ]] \
         &&
+        
         #[[ -f $classes_dir/log4j.properties	]] &&
         [[ -d $meta_inf_dir ]] \
         && [[ -f $meta_inf_dir/context.xml ]]; then
@@ -413,7 +414,7 @@ if [ "$install_default" == "install" ]; then
     username=$user_username
 
     # Prompt for DB password
-    if [ "$username_pass" == "" ] && [[ ! $(lsb_release --short --release) < "16.04" ]]; then # release is Xenial or newer (not older than 16.04), do not allow empty password
+    if [ "$username_pass" == "" ]; then
         # Get new password from user
         while [ "$username_pass" == "" ]; do
             # Note, backslash is interpreted as a quoting symbol, to insert backslash, user needs to input '\\'
@@ -423,12 +424,6 @@ if [ "$install_default" == "install" ]; then
                 echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
             fi
         done
-    else # release is Trusty or older, allow empty password
-        [ -z "$PS1" ] || read-s -p "Please enter username password: [default: $username_pass]: " username_password
-        if [ "$username_password" == "" ]; then
-            username_password=$username_pass
-        fi
-        username_pass=$username_password
     fi
 
     echo "" >> /dev/stderr
@@ -588,10 +583,10 @@ else
 fi
 
 {
-	echo "Successfully installed application $app_name" 
-	echo "You can change the configuration of application later by editing this file: "
-	echo "$misp2_tomcat_resources/config.cfg" 
-	echo ""
-	echo "To enable HTTPS connection between MISP2 application and security server"
-	echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
-}>> /dev/stderr
+    echo "Successfully installed application $app_name"
+    echo "You can change the configuration of application later by editing this file: "
+    echo "$misp2_tomcat_resources/config.cfg"
+    echo ""
+    echo "To enable HTTPS connection between MISP2 application and security server"
+    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
+} >> /dev/stderr
