@@ -126,47 +126,6 @@ function wait_for_misp2_undeployment {
 }
 
 ##
-# Check if misp2 version is older than given version.
-# @param input_ver given Maven version string
-#        that version is compared to existing version in webapp POM
-# @param pom_path optional param, if empty
-# @return 0 if existing Webapp version is older than given version, return 1 otherwise
-##
-function is_misp2_ver_older_than {
-    local input_ver="$1"
-    if [ "$2" != "" ]; then
-        local pom_path="$2"
-    else
-        local pom_path="$tomcat_home/webapps/$app_name/META-INF/maven/misp2/misp2/pom.xml"
-    fi
-
-    if ! [ -f "$pom_path" ]; then
-        # File does not exist so it cannot be older
-        return 1
-    fi
-    # find WAR POM version by taking text between first found 'version>' and '<'
-    local existing_ver=$(perl -p -e "BEGIN{undef $/;} s/^.*?version[^<]*>([^<]+).*$/\1/smg" "$pom_path")
-
-    # split Maven version strings to arrays by either '.' or '-'
-    IFS='.-' read -r -a ar_input_ver <<< "$input_ver"
-    IFS='.-' read -r -a ar_existing_ver <<< "$existing_ver"
-
-    # compare versions and if one
-    if ((${ar_input_ver[0]} > ${ar_existing_ver[0]})); then
-        return 0
-    elif ((${ar_input_ver[0]} == ${ar_existing_ver[0]})); then
-        if ((${ar_input_ver[1]} > ${ar_existing_ver[1]})); then
-            return 0
-        elif ((${ar_input_ver[1]} == ${ar_existing_ver[1]})); then
-            if ((${ar_input_ver[2]} > ${ar_existing_ver[2]})); then
-                return 0
-            fi
-        fi
-    fi
-    return 1
-}
-
-##
 # Replace property by property name in config.orig.cfg file.
 # Property can be commented out and existing property value does not matter,
 # As a result, the replaced line will always be left commented in (enabled).
