@@ -12,7 +12,6 @@ port=5432
 db_name=misp2db
 username=misp2
 username_pass=${MISP2_PASSWORD:changeme}
-config_https=n
 config_mobile_id=n
 install_default=upgrade
 email_host=localhost
@@ -590,23 +589,6 @@ if [ "$install_default" == "install" ]; then
             $xrd_prefix/app/configure_admin_interface_ip.sh change
         fi
     fi
-
-    echo -n "Do you want to enable HTTPS connection between MISP2 application and security server? [y/n] [default: n] " >> /dev/stderr
-    [ -z "$PS1" ] || read config_https < /dev/tty
-    if [ "$config_https" == "" ]; then
-        config_https="n"
-    fi
-    if [ "${ci_setup}" == "y" ]; then
-        config_https="n"
-        echo "no HTTPS config in CI builds - you can do it later with create_https_certs_security_server.sh - script" >> /dev/stderr
-    fi
-
-    if [ $(echo $config_https | grep -i y) ]; then
-        [ -z "$PS1" ] || $xrd_prefix/app/create_https_certs_security_server.sh --omit-restart || true
-        if [ "$?" != "0" ]; then
-            exit 1
-        fi
-    fi
 fi
 
 #Remove cached jsp-s, because for some reason Tomcat does not recompile jsp-s currently. After this deletion however, tomcat will compile jsp-s
@@ -622,6 +604,11 @@ else
     /etc/init.d/tomcat8 restart
 fi
 
-echo "Successfully installed application $app_name" >> /dev/stderr
-echo "You can change the configuration of application later by editing this file: " >> /dev/stderr
-echo "$misp2_tomcat_resources/config.cfg" >> /dev/stderr
+{
+	echo "Successfully installed application $app_name" 
+	echo "You can change the configuration of application later by editing this file: "
+	echo "$misp2_tomcat_resources/config.cfg" 
+	echo ""
+	echo "To enable HTTPS connection between MISP2 application and security server"
+	echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
+}>> /dev/stderr
