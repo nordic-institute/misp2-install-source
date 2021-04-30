@@ -22,7 +22,6 @@ db_name=misp2db
 username=misp2
 username_pass=${MISP2_PASSWORD:secret}
 config_mobile_id=n
-install_default=upgrade
 email_host=localhost
 email_sender=root@localhost
 xroad_instances="EE,ee-dev,ee-test"
@@ -208,30 +207,15 @@ if [ ! -d $tomcat_home/webapps ]; then
         user_tomcat=$tomcat_home
     fi
     tomcat_home=$user_tomcat
-fi
+fi   # [ -d $tomcat_home/webapps/$app_name ]
 
 if [ ! -d $tomcat_home/webapps ]; then
     echo "$tomcat_home/webapps is not found" >> /dev/stderr
     exit 1
 fi
 
-# If misp2 deploy directory exists then upgrade else install
 if [ -d $tomcat_home/webapps/$app_name ]; then
-    echo "Found MISP2 deploy directory so upgrading.." >> /dev/stderr
-    #ci_fails "MISP2 upgrade not yet supported TODO!"
-    install_default=upgrade
-else
-    echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
-    install_default=install
-fi
-
-xroad_instances="EE,ee-dev,ee-test"
-international_xroad_instances="eu-dev,eu-test,eu"
-xroad_member_classes="COM,ORG,GOV,NEE"
-international_member_classes="COM,NGO,ORG,GOV"
-
-if [ "$install_default" == "upgrade" ]; then
-    echo " === Upgrading MISP2 application  ===" >> /dev/stderr
+    echo " === Found MISP2 deploy directory so upgrading MISP2 application  ===" >> /dev/stderr
     echo " " >> /dev/stderr
 
     ### copy war file to the tomcat webapps directory
@@ -248,14 +232,6 @@ if [ "$install_default" == "upgrade" ]; then
         echo "Config properties synchronization has failed" >> /dev/stderr
         exit 1
     fi
-
-    #Synchronize existing log4j properties with default ones
-    #java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/log4j.properties -t /tmp/log4j.properties.bkp -r /tmp/log4j.properties.bkp -e ISO-8859-1
-    #if [ $? -ne 0 ]
-    #then
-    #	echo "log4j properties synchronization has failed"
-    #	exit 1
-    #fi
 
     # check if localhost:8080 exists and rewrite it to localhost (since v. 1.20 Tomcat port 8080 in closed)
     sed 's/localhost:8080/localhost/g' -i /tmp/config.cfg.bkp
@@ -309,7 +285,6 @@ if [ "$install_default" == "upgrade" ]; then
         echo "Updating X-Road instances $xroad_instances" >> /dev/stderr
         perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $misp2_tomcat_resources/config.cfg
     fi
-
     if grep -q 'XROAD_MEMBER_CLASSES' $misp2_tomcat_resources/config.cfg; then
         # Prompt for user input if configure_international=y and international_member_classes variable is set
         if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
@@ -323,11 +298,8 @@ if [ "$install_default" == "upgrade" ]; then
         echo "Updating X-Road member classes $xroad_member_classes" >> /dev/stderr
         perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $misp2_tomcat_resources/config.cfg
     fi
-fi
-
-if [ "$install_default" == "install" ]; then
-
-    echo " === Deploying MISP2 web application === " >> /dev/stderr
+else
+    echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
     echo " " >> /dev/stderr
     ### copy war file to the tomcat webapps directory
     cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
@@ -429,7 +401,6 @@ if [ "$install_default" == "install" ]; then
                     echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
                 fi
             done
-            be sure
 
             # import Apache2 certs to trust store in MISP2 deployment directory
 
