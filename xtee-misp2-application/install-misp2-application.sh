@@ -4,28 +4,43 @@
 #
 # Copyright: 2020 NIIS <info@niis.org>
 
+#
+# installation locations
+#
 xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
+apache2=/etc/apache2
+misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
+
+#
+# default values for user installation choices
+#
 app_name=misp2
 host=127.0.0.1
 port=5432
 db_name=misp2db
 username=misp2
-username_pass=${MISP2_PASSWORD:changeme}
+username_pass=${MISP2_PASSWORD:secret}
 config_mobile_id=n
 install_default=upgrade
 email_host=localhost
 email_sender=root@localhost
-apache2=/etc/apache2
-misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
+xroad_instances="EE,ee-dev,ee-test"
+international_xroad_instances="eu-dev,eu-test,eu"
+xroad_member_classes="COM,ORG,GOV,NEE"
+international_member_classes="COM,NGO,ORG,GOV"
+
+#
+#  installation choices to do before package creation
+#
 # 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
 configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
 skip_estonian=y
 
-# 'y' for asking nothing from user and setting everything for MISP AWS test setup.
+# recognizing the continuous build - should happen with apt-get install -qq..
+# for asking nothing from user and setting everything for MISP AWS test setup.
 #         if that's not possible, fail fast (exit 1)
-
 ci_setup=n
 if [ -a /tmp/ci_installation ]; then
     echo "CI setup noticed" >> /dev/stderr
