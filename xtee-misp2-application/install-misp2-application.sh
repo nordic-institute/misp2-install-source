@@ -12,6 +12,7 @@ tomcat_home=/var/lib/tomcat8
 apache2=/etc/apache2
 misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
 
+
 #
 # default values for user installation choices
 #
@@ -186,10 +187,10 @@ function add_trusted_apache_certs_to_jks_store {
 
 function ensure_tomcat_is_running() {
     status_adverb=
-    while ! /sbin/invoke-rc.d tomcat8 status > /dev/null; do # do not show output, too verbose
+    while ! /usr/sbin/invoke-rc.d tomcat8 status > /dev/null; do # do not show output, too verbose
         ci_fails "Tomcat service is not running"
         echo "tomcat8 service is not running, attempting to start it." >> /dev/stderr
-        /sbin/invoke-rc.d tomcat8 start
+        /usr/sbin/invoke-rc.d tomcat8 start
         status_adverb=" now"
         sleep 1
     done
