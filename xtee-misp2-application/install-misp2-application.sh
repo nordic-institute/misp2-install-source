@@ -12,7 +12,6 @@ tomcat_home=/var/lib/tomcat8
 apache2=/etc/apache2
 misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
 
-
 #
 # default values for user installation choices
 #
@@ -520,14 +519,7 @@ fi
 rm -f -r /var/cache/tomcat8/Catalina/localhost/$app_name/org/apache/jsp
 
 echo "Restarting Tomcat..." >> /dev/stderr
-if [ ! -f /etc/init.d/tomcat8 ]; then
-    echo "Shutdown Tomcat..." >> /dev/stderr
-    $tomcat_home/bin/shutdown.sh
-    echo "Tomcat starting up..." >> /dev/stderr
-    $tomcat_home/bin/startup.sh
-else
-    /etc/init.d/tomcat8 restart
-fi
+/usr/sbin/invoke-rc.d tomcat8 restart
 
 {
     echo "Successfully installed application $app_name"
