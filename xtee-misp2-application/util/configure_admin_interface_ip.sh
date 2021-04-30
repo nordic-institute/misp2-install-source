@@ -40,7 +40,7 @@ if ! (echo "$action" | grep -Eq "$action_regex"); then
     exit 1
 elif [ "$action" == "help" ]; then
     # print out current script doctype
-    perl -nle 'print if /^###$/ .. /^$/' $0
+    perl -nle 'print if /^###$/ .. /^$/' "$0"
     exit 0
 fi
 
@@ -55,7 +55,7 @@ fi
 ##
 function is_valid_ip_conf {
     ip_conf=$1
-    echo $ip_conf | grep -Eq "^(([0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?|\s+|,)+|all$"
+    echo "$ip_conf" | grep -Eq "^(([0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?|\s+|,)+|all$"
     return $?
 }
 
@@ -64,7 +64,7 @@ new_admin_ip=""
 if [ "$2" != "" ]; then
     new_admin_ip=$2
     # If given IP is not valid, exit
-    if ! (is_valid_ip_conf $new_admin_ip); then
+    if ! (is_valid_ip_conf "$new_admin_ip"); then
         echo "ERROR: Not valid IP address(es): '$new_admin_ip'."
         exit 1
     fi
@@ -94,7 +94,7 @@ admin_ip_bookmark_regex="<Location\s+\"\/[\/\*]*admin\/\*\">[^<]+Allow from "
 # find allowed IPs from apache2 conf by substituting the file content with IP list
 apache_conf_admin_ip=$(perl -p -e \
     "BEGIN{undef $/;} s/.*$admin_ip_bookmark_regex([^\n]+).*|.*/\1/smg" \
-    $apache_conf_location)
+    "$apache_conf_location")
 
 # Do not substitute IP if conf IP was empty, meaning conf file was not found
 # or the specific admin IP list was not found
@@ -142,12 +142,12 @@ else
             exit 1
         fi
 
-        read new_admin_ip < /dev/tty
+        read -r new_admin_ip < /dev/tty
         if [ "$new_admin_ip" == "" ]; then
             new_admin_ip="$default_admin_ip"
         fi
         # Check that input resembles list of IPv4 network addresses or keyward 'all'
-        if ! (is_valid_ip_conf $new_admin_ip); then
+        if ! (is_valid_ip_conf "$new_admin_ip"); then
             echo "Input '$new_admin_ip' is not a valid IPv4 network address or list thereof."
             # set to empty so that current loop would continue
             new_admin_ip=""
@@ -177,9 +177,9 @@ else
     new_admin_ip_quoted="${new_admin_ip//[\/]/\\\/}"
     # Perform IP replacement in apache config file
     perl -pi -e "BEGIN{undef $/;} s/($admin_ip_bookmark_regex)[^\n]+/\${1}$new_admin_ip_quoted/smg" \
-        $apache_conf_location
-    service apache2 restart
-    if [ $? -eq 0 ]; then
+        "$apache_conf_location"
+
+    if service apache2 restart; then
         echo "Administrator interface is now accessible from '$new_admin_ip'."
     else
         echo "configure_admin_interface_ip.sh: WARNING: " \
