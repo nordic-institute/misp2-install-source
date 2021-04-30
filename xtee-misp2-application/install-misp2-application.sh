@@ -184,51 +184,60 @@ function add_trusted_apache_certs_to_jks_store {
     [ -r ${mobile_id_truststore_file}.jks ] && rm ${mobile_id_truststore_file}.jks
 }
 
+function ensure_tomcat_is_running() {
+    status_adverb=
+    while ! /sbin/invoke-rc.d tomcat8 status > /dev/null; do # do not show output, too verbose
+        ci_fails "Tomcat service is not running"
+        echo "tomcat8 service is not running, attempting to start it." >> /dev/stderr
+        /sbin/invoke-rc.d tomcat8 start
+        status_adverb=" now"
+        sleep 1
+    done
+    echo "tomcat8 service is$status_adverb running." >> /dev/stderr
+}
+
+function query_for_valid_tomcat_home_dir_if_needed() {
+    if [ ! -d $tomcat_home/webapps ]; then
+        ci_fails "Default tomcat directory not found at: $tomcat_home/webapps"
+        echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: " >> /dev/stderr
+        read -r user_tomcat < /dev/tty
+        if [ "$user_tomcat" == "" ]; then
+            user_tomcat=$tomcat_home
+        fi
+        tomcat_home=$user_tomcat
+    fi
+    if [ ! -d $tomcat_home/webapps ]; then
+        echo "$tomcat_home/webapps is not found" >> /dev/stderr
+        exit 1
+    fi
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
-# Check if Tomcat server is running. If it's not, attempt to start.
-status_adverb=
-while ! /etc/init.d/tomcat8 status > /dev/null; do # do not show output, too verbose
-    ci_fails "Tomcat service is not running"
-    echo "Tomcat7 service is not running, attempting to start it." >> /dev/stderr
-    /etc/init.d/tomcat8 start
-    status_adverb=" now"
-    sleep 1
-done
-echo "Tomcat7 service is$status_adverb running." >> /dev/stderr
 
-# Ask tomcat location
-if [ ! -d $tomcat_home/webapps ]; then
-    ci_fails "Default tomcat directory not found at: $tomcat_home/webapps"
-    echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: " >> /dev/stderr
-    read user_tomcat < /dev/tty
-    if [ "$user_tomcat" == "" ]; then
-        user_tomcat=$tomcat_home
-    fi
-    tomcat_home=$user_tomcat
-fi   # [ -d $tomcat_home/webapps/$app_name ]
+ensure_tomcat_is_running
 
-if [ ! -d $tomcat_home/webapps ]; then
-    echo "$tomcat_home/webapps is not found" >> /dev/stderr
-    exit 1
-fi
+query_for_valid_tomcat_home_dir_if_needed
 
 if [ -d $tomcat_home/webapps/$app_name ]; then
-    echo " === Found MISP2 deploy directory so upgrading MISP2 application  ===" >> /dev/stderr
-    echo " " >> /dev/stderr
+    {
+        echo " === Found MISP2 deploy directory so upgrading MISP2 application  ==="
+        echo " "
+    } >> /dev/stderr
 
-    ### copy war file to the tomcat webapps directory
     ### backuping configuration
     echo " === Backing up configuration === " >> /dev/stderr
-    cp $misp2_tomcat_resources/config.cfg /tmp/config.cfg.bkp
-    cp $misp2_tomcat_resources/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
-    cp $misp2_tomcat_resources/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
-    #cp $misp2_tomcat_resources/log4j.properties /tmp/log4j.properties.bkp
+    cp "$misp2_tomcat_resources"/config.cfg /tmp/config.cfg.bkp
+    cp "$misp2_tomcat_resources"/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
+    cp "$misp2_tomcat_resources"/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
 
     #Synchronize existing config properties with default ones
-    java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/config.orig.cfg -t /tmp/config.cfg.bkp -r /tmp/config.cfg.bkp -e ISO-8859-1
-    if [ $? -ne 0 ]; then
+
+    if java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
+        -s $xrd_prefix/app/config.orig.cfg \
+        -t /tmp/config.cfg.bkp \
+        -r /tmp/config.cfg.bkp -e ISO-8859-1; then
         echo "Config properties synchronization has failed" >> /dev/stderr
         exit 1
     fi
@@ -420,7 +429,7 @@ else
 
     ### sender address
     echo -n "Please provide server email address: [default: $email_sender]: " >> /dev/stderr
-    [ -z "$PS1" ] || read user_email_sender < /dev/tty
+    [ -z "$PS1" ] || read -r user_email_sender < /dev/tty
     if [ "$user_email_sender" == "" ]; then
         user_email_sender=$email_sender
     fi
