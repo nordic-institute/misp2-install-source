@@ -77,6 +77,7 @@ function misp2_deployed {
         && [[ -f $classes_dir/uniportal-conf.cfg ]] \
         &&
         
+
         #[[ -f $classes_dir/log4j.properties	]] &&
         [[ -d $meta_inf_dir ]] \
         && [[ -f $meta_inf_dir/context.xml ]]; then
@@ -232,15 +233,6 @@ international_member_classes="COM,NGO,ORG,GOV"
 if [ "$install_default" == "upgrade" ]; then
     echo " === Upgrading MISP2 application  ===" >> /dev/stderr
     echo " " >> /dev/stderr
-
-    if [ "${ci_setup}" == "y" ]; then
-        echo "No HTTPS cert setup in CI build"
-    else
-        $xrd_prefix/app/create_https_certs_security_server.sh --migrate-truststore-to-cacerts --omit-restart
-        if [ "$?" != "0" ]; then
-            exit 1
-        fi
-    fi
 
     ### copy war file to the tomcat webapps directory
     ### backuping configuration
@@ -560,6 +552,10 @@ fi
     echo "Successfully installed application $app_name"
     echo "You can change the configuration of application later by editing this file: "
     echo "$misp2_tomcat_resources/config.cfg"
+    echo ""
+    echo "To get admin access to MISP2 you need to run"
+    echo "   - $xrd_prefix/admintool.sh  to create the admin user(s) and"
+    echo "   - $xrd_prefix/configure_admin_interface_ip.sh to enable access from hosts you need"
     echo ""
     echo "To enable HTTPS connection between MISP2 application and security server"
     echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
