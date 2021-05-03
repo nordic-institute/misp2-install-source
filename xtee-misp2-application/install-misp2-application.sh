@@ -22,6 +22,7 @@ xrd_prefix=/usr/xtee
 tomcat_home=/var/lib/tomcat8
 apache2=/etc/apache2
 misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
+mobile_id_truststore_path="$misp2_tomcat_resources/mobiili_id_trust_store.p12"
 
 #
 # default values for user installation choices
@@ -38,7 +39,6 @@ xroad_instances="EE,ee-dev,ee-test"
 international_xroad_instances="eu-dev,eu-test,eu"
 xroad_member_classes="COM,ORG,GOV,NEE"
 international_member_classes="COM,NGO,ORG,GOV"
-mobile_id_truststore_path="$misp2_tomcat_resources/mobiili_id_trust_store.p12"
 
 # recognizing the continuous build - should happen with apt-get install -qq..
 # for asking nothing from user and setting everything for MISP AWS test setup.
@@ -243,6 +243,16 @@ function synchronize_new_properties_to_backup_at() {
     fi
 }
 
+function synchronize_new_properties_to_international_config_at() {
+    local config_dir="$1"
+    if ! java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
+        -s "${config_dir}"/config.orig.cfg \
+        -t "${config_dir}"/config.origForInternational.cfg \
+        -r "${config_dir}"/config.orig.cfg -e ISO-8859-1; then
+        echo "Original and international config synchronization has failed" >> /dev/stderr
+        exit 1
+    fi
+}
 function restore_app_configuration_from() {
     local backup_dir="$1"
     echo " === Restoring configuration === " >> /dev/stderr
@@ -272,7 +282,7 @@ function correct_context_xml_and_admintool_sh_with_app_name() {
 }
 
 function is_estonian_installation() {
-    grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg;
+    grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg
 }
 
 function deploy_misp2() {
@@ -326,8 +336,10 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     #
     #  New install
     #
-    echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
-    echo " " >> /dev/stderr
+    {
+        echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.."
+        echo " "
+    } >> /dev/stderr
     
     deploy_misp2
 
@@ -341,14 +353,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     # Override original config properties with international config properties
     # Synchronize international conf with original, if application is configured as international version
     if [ "$configure_international" == "y" ]; then
-
-        if ! java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
-            -s $xrd_prefix/app/config.orig.cfg \
-            -t $xrd_prefix/app/config.origForInternational.cfg \
-            -r $xrd_prefix/app/config.orig.cfg -e ISO-8859-1; then
-            echo "Original and international config synchronization has failed" >> /dev/stderr
-            exit 1
-        fi
+        synchronize_new_properties_to_international_config_at $xrd_prefix/app
     fi
 
     ### database config
