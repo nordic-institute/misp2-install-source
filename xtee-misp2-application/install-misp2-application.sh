@@ -73,9 +73,9 @@ function ci_fails {
 #         failure code (1) if MISP2 deployment directory or conf files do not exist
 ##
 function misp2_deployed {
-    deploy_dir=$tomcat_home/webapps/$app_name
-    classes_dir=$deploy_dir/WEB-INF/classes
-    meta_inf_dir=$deploy_dir/META-INF
+    local deploy_dir=$tomcat_home/webapps/$app_name
+    local classes_dir=$deploy_dir/WEB-INF/classes
+    local meta_inf_dir=$deploy_dir/META-INF
 
     # Check whether webapp files exist that indicate deployment in Tomcat
     if [[ -d $classes_dir ]] \
@@ -100,10 +100,10 @@ function misp2_deployed {
 # Wait until MISP2 webapp has been deployed and echo out waiting status
 ##
 function wait_for_misp2_deployment {
-    start_time=$SECONDS
-    time_spent=""
+    local start_time=$SECONDS
+    local time_spent=""
     while ! misp2_deployed; do
-        time_spent=$(($SECONDS - $start_time))
+        local time_spent=$(($SECONDS - $start_time))
         echo -ne "...Waiting for MISP2 webapp deployment... ($time_spent s)"\\r >> /dev/stderr
         sleep 0.5
     done
@@ -118,8 +118,8 @@ function wait_for_misp2_deployment {
 #         failure code (1) if MISP2 deployment directory or WAR exists
 ##
 function misp2_undeployed {
-    deploy_dir=$tomcat_home/webapps/$app_name
-    war_full_path=$deploy_dir.war
+    local deploy_dir=$tomcat_home/webapps/$app_name
+    local war_full_path=$deploy_dir.war
     # Check whether webapp Tomcat deployment directory or the corresponding WAR file exist
     if [[ -d $deploy_dir ]] \
         || [[ -f $war_full_path ]]; then
@@ -135,10 +135,10 @@ function misp2_undeployed {
 # Wait until MISP2 webapp has been undeployed and echo out waiting status
 ##
 function wait_for_misp2_undeployment {
-    start_time=$SECONDS
-    time_spent=""
+    local start_time=$SECONDS
+    local time_spent=""
     while ! misp2_undeployed; do
-        time_spent=$(($SECONDS - $start_time))
+        local time_spent=$(($SECONDS - $start_time))
         echo -ne "...Waiting for MISP2 webapp undeployment... ($time_spent s)"\\r >> /dev/stderr
         sleep 0.5
     done
@@ -157,9 +157,9 @@ function wait_for_misp2_undeployment {
 # @param prop_value new property value assigned to found property
 ##
 function replace_conf_prop {
-    prop_name="$1"
-    prop_value="$2"
-    replacement_expression='s/^#?\s*'"${prop_name//./[.]}"'\s*=.*/'"$prop_name"'='"${prop_value//\//\\\/}"'/g'
+    local prop_name="$1"
+    local prop_value="$2"
+    local replacement_expression='s/^#?\s*'"${prop_name//./[.]}"'\s*=.*/'"$prop_name"'='"${prop_value//\//\\\/}"'/g'
     perl -pi -e "$replacement_expression" $xrd_prefix/app/config.orig.cfg
 }
 
@@ -169,6 +169,9 @@ function replace_conf_prop {
 # It's needed for Mobile ID authentication
 ##
 function add_trusted_apache_certs_to_jks_store {
+    local mobile_id_truststore_p12_file truststore_dir 
+    local mobile_id_truststore_file standard_trust_store_pwd standard_trust_store_pwd 
+    local apache_cert_files cert_alias
     mobile_id_truststore_p12_file="$1"  # full path to intended .p12 file
     truststore_dir=$(dirname "${mobile_id_truststore_p12_file}" )
     mobile_id_truststore_file="${truststore_dir}/$(basename  --suffix=.p12 "${mobile_id_truststore_p12_file}")"
@@ -177,7 +180,6 @@ function add_trusted_apache_certs_to_jks_store {
     apache_cert_files=$(find ${apache2}/ssl/ -regex '.*trusted_crt.pem')
 
     for apache_cert_file in $apache_cert_files; do
-
         cert_alias=$(basename "$apache_cert_file" _trusted_crt.pem)
         echo "$cert_alias"
         openssl x509 -in "${apache_cert_file}" \
@@ -195,7 +197,7 @@ function add_trusted_apache_certs_to_jks_store {
 }
 
 function ensure_tomcat_is_running() {
-    status_adverb=
+    local status_adverb=
     while ! /usr/sbin/invoke-rc.d tomcat8 status > /dev/null; do # do not show output, too verbose
         ci_fails "Tomcat service is not running"
         echo "tomcat8 service is not running, attempting to start it." >> /dev/stderr
@@ -210,15 +212,55 @@ function query_for_valid_tomcat_home_dir_if_needed() {
     if [ ! -d $tomcat_home/webapps ]; then
         ci_fails "Default tomcat directory not found at: $tomcat_home/webapps"
         echo -n "Please provide Apache Tomcat working directory [default: $tomcat_home]: " >> /dev/stderr
+        local user_tomcat
         read -r user_tomcat < /dev/tty
         if [ "$user_tomcat" == "" ]; then
             user_tomcat=$tomcat_home
         fi
-        tomcat_home=$user_tomcat
+        local tomcat_home=$user_tomcat
     fi
     if [ ! -d $tomcat_home/webapps ]; then
         echo "$tomcat_home/webapps is not found" >> /dev/stderr
         exit 1
+    fi
+}
+
+function backup_app_configuration_to() {
+    local backup_dir="$1"
+    echo " === Backing up configuration === to ${backup_dir}" >> /dev/stderr
+    cp "$misp2_tomcat_resources"/config.cfg "${backup_dir}"/config.cfg.bkp
+    cp "$misp2_tomcat_resources"/orgportal-conf.cfg "${backup_dir}"/orgportal-conf.cfg.bkp
+    cp "$misp2_tomcat_resources"/uniportal-conf.cfg "${backup_dir}"/uniportal-conf.cfg.bkp
+}
+
+function synchronize_new_properties_to_backup_at() {
+    local backup_dir="$1"
+    if java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
+        -s $xrd_prefix/app/config.orig.cfg \
+        -t "${backup_dir}"/config.cfg.bkp \
+        -r "${backup_dir}"/config.cfg.bkp -e ISO-8859-1; then
+        echo "Config properties synchronization has failed" >> /dev/stderr
+        exit 1
+    fi
+}
+
+function restore_app_configuration_from  () {
+    local backup_dir="$1"
+    echo " === Restoring configuration === " >> /dev/stderr
+    ### restoring configuration
+    if [ ! -d $misp2_tomcat_resources -o ! -d $tomcat_home/webapps/$app_name/META-INF ]; then
+        echo -e "\t\t WARNING! Previou)=s configuration could not be restored. \n\
+                 Either Tomcat was not running or deployment of the application did not finish in time.\n\
+                 When installation is complete copy the files: \n\
+                 ${backup_dir}/config.cfg.bkp (to $misp2_tomcat_resources/config.cfg), \n\
+                 ${backup_dir}/log4j.properties.bkp (to $misp2_tomcat_resources/log4j.properties) and \n\
+                 $backup_dir/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
+    else
+        cp "${backup_dir}"/config.cfg.bkp $misp2_tomcat_resources/config.cfg
+        cp "${backup_dir}"/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
+        cp "${backup_dir}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
+        cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
+        add_trusted_apache_certs_to_jks_store  "$mobile_id_truststore_path"
     fi
 }
 
@@ -236,25 +278,15 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo " "
     } >> /dev/stderr
 
+
     conf_backup=$( mktemp --directory --tmpdir misp2_config_backup_XXXXXX)
+
+    ### backing configuration up
+    backup_app_configuration_to "$conf_backup"
     
-
-    ### backuping configuration
-    echo " === Backing up configuration === to ${conf_backup}" >> /dev/stderr
-    cp "$misp2_tomcat_resources"/config.cfg "${conf_backup}"/config.cfg.bkp
-    cp "$misp2_tomcat_resources"/orgportal-conf.cfg "${conf_backup}"/orgportal-conf.cfg.bkp
-    cp "$misp2_tomcat_resources"/uniportal-conf.cfg "${conf_backup}"/uniportal-conf.cfg.bkp
-
     #Synchronize existing config properties with default ones
-
-    if java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
-        -s $xrd_prefix/app/config.orig.cfg \
-        -t "${conf_backup}"/config.cfg.bkp \
-        -r "${conf_backup}"/config.cfg.bkp -e ISO-8859-1; then
-        echo "Config properties synchronization has failed" >> /dev/stderr
-        exit 1
-    fi
-
+    synchronize_new_properties_to_backup_at "${conf_backup}"
+   
     # remove ^M from config file
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
 
@@ -271,22 +303,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
     wait_for_misp2_deployment
 
-    echo " === Restoring configuration === " >> /dev/stderr
-    ### restoring configuration
-    if [ ! -d $misp2_tomcat_resources -o ! -d $tomcat_home/webapps/$app_name/META-INF ]; then
-        echo -e "\t\t WARNING! Previous configuration could not be restored. \n\
-                 Either Tomcat was not running or deployment of the application did not finish in time.\n\
-                 When installation is complete copy the files: \n\
-                 ${conf_backup}/config.cfg.bkp (to $misp2_tomcat_resources/config.cfg), \n\
-                 ${conf_backup}/log4j.properties.bkp (to $misp2_tomcat_resources/log4j.properties) and \n\
-                 $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
-    else
-        cp "${conf_backup}"/config.cfg.bkp $misp2_tomcat_resources/config.cfg
-        cp "${conf_backup}"/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
-        cp "${conf_backup}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
-        cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
-        add_trusted_apache_certs_to_jks_store  "$mobile_id_truststore_path"
-    fi
+    restore_app_configuration_from  "$conf_backup"
 
     ### replacing new key values in configuration
     if grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg; then
