@@ -5,6 +5,18 @@
 # Copyright: 2020 NIIS <info@niis.org>
 
 #
+#  installation choices to do before package creation
+#
+# 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
+configure_international=y
+# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
+skip_estonian=y
+#
+# 
+app_name=misp2
+
+
+#
 # installation locations
 #
 xrd_prefix=/usr/xtee
@@ -15,7 +27,6 @@ misp2_tomcat_resources=$tomcat_home/webapps/$app_name/WEB-INF/classes
 #
 # default values for user installation choices
 #
-app_name=misp2
 host=127.0.0.1
 port=5432
 db_name=misp2db
@@ -29,13 +40,7 @@ international_xroad_instances="eu-dev,eu-test,eu"
 xroad_member_classes="COM,ORG,GOV,NEE"
 international_member_classes="COM,NGO,ORG,GOV"
 
-#
-#  installation choices to do before package creation
-#
-# 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
-configure_international=y
-# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
-skip_estonian=y
+
 
 # recognizing the continuous build - should happen with apt-get install -qq..
 # for asking nothing from user and setting everything for MISP AWS test setup.
