@@ -231,28 +231,31 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo " "
     } >> /dev/stderr
 
+    conf_backup=$( mktemp --directory --tmpdir misp2_config_backup_XXXXXX)
+    
+
     ### backuping configuration
-    echo " === Backing up configuration === " >> /dev/stderr
-    cp "$misp2_tomcat_resources"/config.cfg /tmp/config.cfg.bkp
-    cp "$misp2_tomcat_resources"/orgportal-conf.cfg /tmp/orgportal-conf.cfg.bkp
-    cp "$misp2_tomcat_resources"/uniportal-conf.cfg /tmp/uniportal-conf.cfg.bkp
+    echo " === Backing up configuration === to ${conf_backup}" >> /dev/stderr
+    cp "$misp2_tomcat_resources"/config.cfg "${conf_backup}"/config.cfg.bkp
+    cp "$misp2_tomcat_resources"/orgportal-conf.cfg "${conf_backup}"/orgportal-conf.cfg.bkp
+    cp "$misp2_tomcat_resources"/uniportal-conf.cfg "${conf_backup}"/uniportal-conf.cfg.bkp
 
     #Synchronize existing config properties with default ones
 
     if java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
         -s $xrd_prefix/app/config.orig.cfg \
-        -t /tmp/config.cfg.bkp \
-        -r /tmp/config.cfg.bkp -e ISO-8859-1; then
+        -t "${conf_backup}"/config.cfg.bkp \
+        -r "${conf_backup}"/config.cfg.bkp -e ISO-8859-1; then
         echo "Config properties synchronization has failed" >> /dev/stderr
         exit 1
     fi
 
     # check if localhost:8080 exists and rewrite it to localhost (since v. 1.20 Tomcat port 8080 in closed)
-    sed 's/localhost:8080/localhost/g' -i /tmp/config.cfg.bkp
+    sed 's/localhost:8080/localhost/g' -i "${conf_backup}"/config.cfg.bkp
     # remove ^M from config file
-    sed -i s/\\r//g /tmp/config.cfg.bkp
+    sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
     # replace default producer filtering property since producer identifier changed in ver 2.1.28
-    perl -pi -e 'BEGIN {$text = q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+)|([^:]+:[^:]+:generic-consumer}; $text2=q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+:[^:]+)|([^:]+:[^:]+:[^:]+:generic-consumer}} s/\Q$text\E/$text2/g' /tmp/config.cfg.bkp
+    perl -pi -e 'BEGIN {$text = q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+)|([^:]+:[^:]+:generic-consumer}; $text2=q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+:[^:]+)|([^:]+:[^:]+:[^:]+:generic-consumer}} s/\Q$text\E/$text2/g' "${conf_backup}"/config.cfg.bkp
     # config.cfg replacements done
     # rewrite context file
     perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/context.orig.xml
@@ -269,11 +272,16 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     echo " === Restoring configuration === " >> /dev/stderr
     ### restoring configuration
     if [ ! -d $misp2_tomcat_resources -o ! -d $tomcat_home/webapps/$app_name/META-INF ]; then
-        echo "WARNING! Previous configuration could not be restored. Either Tomcat was not running or deployment of the application did not finish in time. When installation is complete copy the files /tmp/config.cfg.bkp (to $misp2_tomcat_resources/config.cfg), /tmp/log4j.properties.bkp (to $misp2_tomcat_resources/log4j.properties) and $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
+        echo -e "\t\t WARNING! Previous configuration could not be restored. \n\
+                 Either Tomcat was not running or deployment of the application did not finish in time.\n\
+                 When installation is complete copy the files: \n\
+                 ${conf_backup}/config.cfg.bkp (to $misp2_tomcat_resources/config.cfg), \n\
+                 ${conf_backup}/log4j.properties.bkp (to $misp2_tomcat_resources/log4j.properties) and \n\
+                 $xrd_prefix/app/context.orig.xml (to $tomcat_home/webapps/$app_name/META-INF/context.xml) manually." >> /dev/stderr
     else
-        cp /tmp/config.cfg.bkp $misp2_tomcat_resources/config.cfg
-        cp /tmp/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
-        cp /tmp/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
+        cp "${conf_backup}"/config.cfg.bkp $misp2_tomcat_resources/config.cfg
+        cp "${conf_backup}"/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
+        cp "${conf_backup}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
         cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
         add_trusted_apache_certs_to_jks_store
     fi
