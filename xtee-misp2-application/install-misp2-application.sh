@@ -57,8 +57,11 @@ fi
 # Declare functions #
 #####################
 
+function is_ci_build() {
+    [ "$ci_setup" == "y" ]
+}
 function ci_fails {
-    if [ "$ci_setup" == "y" ]; then
+    if is_ci_build; then
         echo "CI setup fails ... $1"
         exit 1
     fi
@@ -317,12 +320,13 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         configure_international="y"
         echo "Updating international version" >> /dev/stderr
     fi
+
     if grep -q 'XROAD_INSTANCES' $misp2_tomcat_resources/config.cfg; then
-        # Prompt for user input if configure_international=y and international_xroad_instances variable is set
-        if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
+        # Prompt for user input if configure_international=y 
+        if [ "$configure_international" == "y" ]; then
             xroad_instances=$international_xroad_instances
             echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-            [ -z "$PS1" ] || read -r user_xroad_instances < /dev/tty
+            is_ci_build || read -r user_xroad_instances < /dev/tty
             if [ "$user_xroad_instances" != "" ]; then
                 xroad_instances=$user_xroad_instances
             fi
@@ -331,11 +335,11 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $misp2_tomcat_resources/config.cfg
     fi
     if grep -q 'XROAD_MEMBER_CLASSES' $misp2_tomcat_resources/config.cfg; then
-        # Prompt for user input if configure_international=y and international_member_classes variable is set
-        if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
+        # Prompt for user input if configure_international=y 
+        if [ "$configure_international" == "y" ]; then
             xroad_member_classes=$international_member_classes
             echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-            [ -z "$PS1" ] || read -r user_xroad_member_classes < /dev/tty
+            is_ci_build || read -r user_xroad_member_classes < /dev/tty
             if [ "$user_xroad_member_classes" != "" ]; then
                 xroad_member_classes=$user_xroad_member_classes
             fi
@@ -372,28 +376,28 @@ else
     ### database config
 
     echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
-    [ -z "$PS1" ] || read -r user_host < /dev/tty
+    is_ci_build || read -r user_host < /dev/tty
     if [ "$user_host" == "" ]; then
         user_host=$host
     fi
     host=$user_host
 
     echo -n "Please provide database port to be used [default: $port]: " >> /dev/stderr
-    [ -z "$PS1" ] || read -r user_port < /dev/tty
+    is_ci_build || read -r user_port < /dev/tty
     if [ "$user_port" == "" ]; then
         user_port=$port
     fi
     port=$user_port
 
     echo -n "Please provide database name to be used [default: $db_name]: " >> /dev/stderr
-    [ -z "$PS1" ] || read -r user_db < /dev/tty
+    is_ci_build || read -r user_db < /dev/tty
     if [ "$user_db" == "" ]; then
         user_db=$db_name
     fi
     db_name=$user_db
 
     echo -n "Please provide username to be communicating with database [default: $username]: " >> /dev/stderr
-    [ -z "$PS1" ] || read -r user_username < /dev/tty
+    is_ci_build || read -r user_username < /dev/tty
     if [ "$user_username" == "" ]; then
         user_username=$username
     fi
@@ -404,7 +408,7 @@ else
         # Get new password from user
         while [ "$username_pass" == "" ]; do
             # Note, backslash is interpreted as a quoting symbol, to insert backslash, user needs to input '\\'
-            [ -z "$PS1" ] || read-s -p "Please enter password for database user '$username': " username_pass
+            is_ci_build || read-s -p "Please enter password for database user '$username': " username_pass
             echo
             if [ "$username_pass" == "" ]; then
                 echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
@@ -418,7 +422,7 @@ else
         ###
 
         echo -n "Do you want to enable authentication with Mobile-ID? [y/n] [default: $config_mobile_id] " >> /dev/stderr
-        [ -z "$PS1" ] || readuser_config_mobile_id < /dev/tty
+        is_ci_build || readuser_config_mobile_id < /dev/tty
         if [ "$user_config_mobile_id" == "" ]; then
             # By default use default configuration
             user_config_mobile_id="$config_mobile_id"
@@ -436,7 +440,7 @@ else
             while [ "$mobile_id_relying_party_uuid" == "" ]; do
                 echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
                 echo -n " (format: 00000000-0000-0000-0000-000000000000): " >> /dev/stderr
-                [ -z "$PS1" ] || read -r mobile_id_relying_party_uuid < /dev/tty
+                is_ci_build || read -r mobile_id_relying_party_uuid < /dev/tty
                 if [ "$mobile_id_relying_party_uuid" == "" ]; then
                     echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
                 fi
@@ -460,7 +464,7 @@ else
     ### configure mail servers
     ##
     echo -n "Please provide SMTP host address [default: $email_host]: " >> /dev/stderr
-    [ -z "$PS1" ] || readuser_email_host < /dev/tty
+    is_ci_build || readuser_email_host < /dev/tty
     if [ "$user_email_host" == "" ]; then
         user_email_host=$email_host
     fi
@@ -468,7 +472,7 @@ else
 
     ### sender address
     echo -n "Please provide server email address: [default: $email_sender]: " >> /dev/stderr
-    [ -z "$PS1" ] || read -r user_email_sender < /dev/tty
+    is_ci_build || read -r user_email_sender < /dev/tty
     if [ "$user_email_sender" == "" ]; then
         user_email_sender=$email_sender
     fi
@@ -479,7 +483,7 @@ else
     if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
         xroad_instances=$international_xroad_instances
         echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-        [ -z "$PS1" ] || read -r user_xroad_instances < /dev/tty
+        is_ci_build || read -r user_xroad_instances < /dev/tty
         if [ "$user_xroad_instances" != "" ]; then
             xroad_instances=$user_xroad_instances
         fi
@@ -489,7 +493,7 @@ else
     if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
         xroad_member_classes=$international_member_classes
         echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-        [ -z "$PS1" ] || read -r user_xroad_member_classes < /dev/tty
+        is_ci_build || read -r user_xroad_member_classes < /dev/tty
         if [ "$user_xroad_member_classes" != "" ]; then
             xroad_member_classes=$user_xroad_member_classes
         fi
