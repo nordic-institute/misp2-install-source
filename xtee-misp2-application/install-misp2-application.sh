@@ -314,42 +314,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     
     restore_app_configuration_from "$conf_backup"
 
-    ### replacing new key values in configuration
-    if is_estonian_installation ; then
-        configure_international="n"
-        echo "Updating Estonian version" >> /dev/stderr
-    else
-        configure_international="y"
-        echo "Updating international version" >> /dev/stderr
-    fi
-
-    if grep -q 'XROAD_INSTANCES' $misp2_tomcat_resources/config.cfg; then
-        # Prompt for user input if configure_international=y 
-        if [ "$configure_international" == "y" ]; then
-            xroad_instances=$international_xroad_instances
-            echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-            is_ci_build || read -r user_xroad_instances < /dev/tty
-            if [ "$user_xroad_instances" != "" ]; then
-                xroad_instances=$user_xroad_instances
-            fi
-        fi
-        echo "Updating X-Road instances $xroad_instances" >> /dev/stderr
-        perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $misp2_tomcat_resources/config.cfg
-    fi
-    if grep -q 'XROAD_MEMBER_CLASSES' $misp2_tomcat_resources/config.cfg; then
-        # Prompt for user input if configure_international=y 
-        if [ "$configure_international" == "y" ]; then
-            xroad_member_classes=$international_member_classes
-            echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-            is_ci_build || read -r user_xroad_member_classes < /dev/tty
-            if [ "$user_xroad_member_classes" != "" ]; then
-                xroad_member_classes=$user_xroad_member_classes
-            fi
-        fi
-        echo "Updating X-Road member classes $xroad_member_classes" >> /dev/stderr
-        perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $misp2_tomcat_resources/config.cfg
-    fi
-else
+   else
     echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
     echo " " >> /dev/stderr
     
