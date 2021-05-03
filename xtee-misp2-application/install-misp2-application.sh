@@ -7,9 +7,10 @@
 #
 #  installation choices to do before package creation
 #
-# 'y' if portal is configured in international mode, 'n' if not; value could be replaced before package generation
+
+# 'y' if portal is configured in international mode, 'n' if not;
 configure_international=y
-# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
+# 'y' to skip estonian portal related prompt questions, 'n' to include them;
 skip_estonian=y
 #
 #
@@ -297,6 +298,20 @@ function undeploy_misp2() {
     wait_for_misp2_undeployment
 
 }
+
+#global user answer variable
+ANSWER=
+function ask_with_prompt_and_default_to_ANSWER() {
+    local prompt default value
+    default="${2}"
+    prompt="$1 [default: ${default}]: "
+    is_ci_build || read -r -p "$prompt" value < /dev/tty
+    if [ "$value" == "" ]; then
+        value=$default
+    fi
+    ANSWER="${value}"
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -329,10 +344,10 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     undeploy_misp2
 
     deploy_misp2
-    
+
     restore_app_configuration_from "$conf_backup"
 
-   else
+else
     #
     #  New install
     #
@@ -340,7 +355,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.."
         echo " "
     } >> /dev/stderr
-    
+
     deploy_misp2
 
     # Only prompt when estonian portal related questions are not skipped
@@ -358,34 +373,18 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     ### database config
 
-    echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
-    is_ci_build || read -r user_host < /dev/tty
-    if [ "$user_host" == "" ]; then
-        user_host=$host
-    fi
-    host=$user_host
+    ask_with_prompt_and_default_to_ANSWER "Please provide database host IP to be used " "$host"
+    host="$ANSWER"
+    
+    ask_with_prompt_and_default_to_ANSWER "Please provide database port to be used" $port
+    port="$ANSWER"
 
-    echo -n "Please provide database port to be used [default: $port]: " >> /dev/stderr
-    is_ci_build || read -r user_port < /dev/tty
-    if [ "$user_port" == "" ]; then
-        user_port=$port
-    fi
-    port=$user_port
-
-    echo -n "Please provide database name to be used [default: $db_name]: " >> /dev/stderr
-    is_ci_build || read -r user_db < /dev/tty
-    if [ "$user_db" == "" ]; then
-        user_db=$db_name
-    fi
-    db_name=$user_db
-
-    echo -n "Please provide username to be communicating with database [default: $username]: " >> /dev/stderr
-    is_ci_build || read -r user_username < /dev/tty
-    if [ "$user_username" == "" ]; then
-        user_username=$username
-    fi
-    username=$user_username
-
+    ask_with_prompt_and_default_to_ANSWER "Please provide database name to be used" $db_name
+    db_name="$ANSWER"
+    
+    ask_with_prompt_and_default_to_ANSWER "Please provide username to be communicating with database" $username
+    username="$ANSWER"
+    
     # Prompt for DB password
     if [ "$username_pass" == "" ]; then
         # Get new password from user
@@ -403,14 +402,8 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         ### configure Mobile-ID
         ###
 
-        echo -n "Do you want to enable authentication with Mobile-ID? [y/n] [default: $config_mobile_id] " >> /dev/stderr
-        is_ci_build || readuser_config_mobile_id < /dev/tty
-        if [ "$user_config_mobile_id" == "" ]; then
-            # By default use default configuration
-            user_config_mobile_id="$config_mobile_id"
-        fi
-
-        if (echo $user_config_mobile_id | grep -i y) >> /dev/stderr; then
+        ask_with_prompt_and_default_to_ANSWER "Do you want to enable authentication with Mobile-ID? [y/n]" $config_mobile_id
+        if (echo "$ANSWER" | grep -i y) >> /dev/stderr; then
             config_mobile_id=y
         else
             config_mobile_id=n
@@ -419,18 +412,18 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         if [ "$config_mobile_id" == "y" ]; then
             mobile_id_url="https://mid.sk.ee/mid-api"
             mobile_id_polling_timeout=60
+
             while [ "$mobile_id_relying_party_uuid" == "" ]; do
-                echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
-                echo -n " (format: 00000000-0000-0000-0000-000000000000): " >> /dev/stderr
-                is_ci_build || read -r mobile_id_relying_party_uuid < /dev/tty
+                ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party UUID (format: 00000000-0000-0000-0000-000000000000)" >> /dev/stderr
+                mobile_id_relying_party_uuid="${ANSWER}"
                 if [ "$mobile_id_relying_party_uuid" == "" ]; then
                     echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
-                fi
+                fi                
             done
 
             while [ "$mobile_id_relying_party_name" == "" ]; do
-                echo -n "Please provide your Mobile-ID relying party name: " >> /dev/stderr
-                read -r mobile_id_relying_party_name < /dev/tty
+                ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party name:" >> /dev/stderr
+                mobile_id_relying_party_name="${ANSWER}"
                 if [ "$mobile_id_relying_party_name" == "" ]; then
                     echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
                 fi
@@ -461,18 +454,15 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     email_sender=$user_email_sender
     email_sender=${email_sender//\@/\\@} >> /dev/stderr
 
-    # Prompt for user input if configure_international=y and international_xroad_instances variable is set
-    if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
+    # Prompt for user input if configure_international=y
+    if [ "$configure_international" == "y" ]; then
         xroad_instances=$international_xroad_instances
         echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
         is_ci_build || read -r user_xroad_instances < /dev/tty
         if [ "$user_xroad_instances" != "" ]; then
             xroad_instances=$user_xroad_instances
         fi
-    fi
 
-    # Prompt for user input if configure_international=y and international_member_classes variable is set
-    if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
         xroad_member_classes=$international_member_classes
         echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
         is_ci_build || read -r user_xroad_member_classes < /dev/tty
