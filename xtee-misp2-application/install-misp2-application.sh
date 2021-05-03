@@ -39,6 +39,7 @@ xroad_instances="EE,ee-dev,ee-test"
 international_xroad_instances="eu-dev,eu-test,eu"
 xroad_member_classes="COM,ORG,GOV,NEE"
 international_member_classes="COM,NGO,ORG,GOV"
+mobile_id_truststore_path="$misp2_tomcat_resources/mobiili_id_trust_store.p12"
 
 
 
@@ -65,6 +66,8 @@ function ci_fails {
         exit 1
     fi
 }
+
+
 ##
 # @return success code (0) if MISP2 deployment directory with conf files exist
 #         failure code (1) if MISP2 deployment directory or conf files do not exist
@@ -166,27 +169,29 @@ function replace_conf_prop {
 # It's needed for Mobile ID authentication
 ##
 function add_trusted_apache_certs_to_jks_store {
-    mobile_id_truststore_file="$misp2_tomcat_resources/mobiili_id_trust_store"
+    mobile_id_truststore_p12_file="$1"  # full path to intended .p12 file
+    truststore_dir=$(dirname "${mobile_id_truststore_p12_file}" )
+    mobile_id_truststore_file="${truststore_dir}/$(basename  --suffix=.p12 "${mobile_id_truststore_p12_file}")"
     standard_trust_store_pwd="${username_pass:-secret}"
 
-    apache_cert_files=$(find ${apache2}/ssl/ -regex .*trusted_crt.pem)
+    apache_cert_files=$(find ${apache2}/ssl/ -regex '.*trusted_crt.pem')
 
     for apache_cert_file in $apache_cert_files; do
 
-        cert_alias=$(basename $apache_cert_file _trusted_crt.pem)
-        echo $cert_alias
-        openssl x509 -in ${apache_cert_file} \
+        cert_alias=$(basename "$apache_cert_file" _trusted_crt.pem)
+        echo "$cert_alias"
+        openssl x509 -in "${apache_cert_file}" \
             | keytool -import -v -storepass ${standard_trust_store_pwd} \
-                -noprompt -trustcacerts -alias ${cert_alias} \
-                -keystore ${mobile_id_truststore_file}.jks
+                -noprompt -trustcacerts -alias "${cert_alias}" \
+                -keystore "${mobile_id_truststore_file}".jks
     done
-    [ -r ${mobile_id_truststore_file}.jks ] && keytool -importkeystore -noprompt \
-        -srckeystore ${mobile_id_truststore_file}.jks -srcstoretype JKS \
+    [ -r "${mobile_id_truststore_file}".jks ] && keytool -importkeystore -noprompt \
+        -srckeystore "${mobile_id_truststore_file}".jks -srcstoretype JKS \
         -srcstorepass ${standard_trust_store_pwd} \
-        -destkeystore ${mobile_id_truststore_file}.p12 -deststoretype PKCS12 \
+        -destkeystore "${mobile_id_truststore_file}".p12 -deststoretype PKCS12 \
         -deststorepass ${standard_trust_store_pwd}
 
-    [ -r ${mobile_id_truststore_file}.jks ] && rm ${mobile_id_truststore_file}.jks
+    [ -r "${mobile_id_truststore_file}".jks ] && rm "${mobile_id_truststore_file}".jks
 }
 
 function ensure_tomcat_is_running() {
@@ -283,7 +288,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         cp "${conf_backup}"/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
         cp "${conf_backup}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
         cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
-        add_trusted_apache_certs_to_jks_store
+        add_trusted_apache_certs_to_jks_store  "$mobile_id_truststore_path"
     fi
 
     ### replacing new key values in configuration
@@ -426,7 +431,7 @@ else
 
             # import Apache2 certs to trust store in MISP2 deployment directory
 
-            add_trusted_apache_certs_to_jks_store
+            add_trusted_apache_certs_to_jks_store "${mobile_id_truststore_path}"
 
         fi
     fi
