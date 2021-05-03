@@ -260,6 +260,14 @@ function restore_app_configuration_from() {
     fi
 }
 
+function correct_context_xml_and_admintool_sh_with_app_name() {
+    local name
+    name="$1"
+    perl -pi -e "s/APP_NAME/$name/g" $xrd_prefix/app/context.orig.xml
+    perl -pi -e "s/APP_NAME/$name/g" $xrd_prefix/app/admintool.sh
+
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -286,9 +294,9 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
 
     # config.cfg replacements done
+
     # rewrite context file
-    perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/context.orig.xml
-    perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/admintool.sh
+    correct_context_xml_and_admintool_sh_with_app_name "$app_name"
 
     echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
     rm -rf $tomcat_home/webapps/$app_name*
@@ -296,6 +304,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     echo " === Deploying new version of MISP2 web application === " >> /dev/stderr
     cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
+
     wait_for_misp2_deployment
 
     restore_app_configuration_from "$conf_backup"
@@ -313,7 +322,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
             xroad_instances=$international_xroad_instances
             echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-            [ -z "$PS1" ] || read -r  user_xroad_instances < /dev/tty
+            [ -z "$PS1" ] || read -r user_xroad_instances < /dev/tty
             if [ "$user_xroad_instances" != "" ]; then
                 xroad_instances=$user_xroad_instances
             fi
@@ -516,8 +525,7 @@ else
     sed -i s/\\r//g $xrd_prefix/app/config.orig.cfg
 
     ### META-INF/context.xml config
-    perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/context.orig.xml
-    perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/admintool.sh
+    correct_context_xml_and_admintool_sh_with_app_name "$app_name"
 
     wait_for_misp2_deployment
 
