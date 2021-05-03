@@ -235,7 +235,7 @@ function backup_app_configuration_to() {
 
 function synchronize_new_properties_to_backup_at() {
     local backup_dir="$1"
-    if java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
+    if ! java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
         -s $xrd_prefix/app/config.orig.cfg \
         -t "${backup_dir}"/config.cfg.bkp \
         -r "${backup_dir}"/config.cfg.bkp -e ISO-8859-1; then
