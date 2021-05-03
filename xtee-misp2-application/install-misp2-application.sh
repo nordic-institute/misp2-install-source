@@ -271,6 +271,16 @@ function correct_context_xml_and_admintool_sh_with_app_name() {
 
 }
 
+function is_estonian_installation() {
+    grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg;
+}
+
+function deploy_misp2() {
+    echo " === Deploying MISP2 web application === " >> /dev/stderr
+    cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
+    wait_for_misp2_deployment
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -287,33 +297,25 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     conf_backup=$(mktemp --directory --tmpdir misp2_config_backup_XXXXXX)
 
-    ### backing configuration up
     backup_app_configuration_to "$conf_backup"
 
-    #Synchronize existing config properties with default ones
     synchronize_new_properties_to_backup_at "${conf_backup}"
 
     # remove ^M from config file
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
 
-    # config.cfg replacements done
-
-    # rewrite context file
     correct_context_xml_and_admintool_sh_with_app_name "$app_name"
 
     echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
     rm -rf $tomcat_home/webapps/$app_name*
     wait_for_misp2_undeployment
 
-    echo " === Deploying new version of MISP2 web application === " >> /dev/stderr
-    cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
-
-    wait_for_misp2_deployment
-
+    deploy_misp2
+    
     restore_app_configuration_from "$conf_backup"
 
     ### replacing new key values in configuration
-    if grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg; then
+    if is_estonian_installation ; then
         configure_international="n"
         echo "Updating Estonian version" >> /dev/stderr
     else
@@ -350,8 +352,8 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 else
     echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
     echo " " >> /dev/stderr
-    ### copy war file to the tomcat webapps directory
-    cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
+    
+    deploy_misp2
 
     # Only prompt when estonian portal related questions are not skipped
     if [ "$skip_estonian" != "y" ]; then
@@ -407,8 +409,7 @@ else
     if [ "$username_pass" == "" ]; then
         # Get new password from user
         while [ "$username_pass" == "" ]; do
-            # Note, backslash is interpreted as a quoting symbol, to insert backslash, user needs to input '\\'
-            is_ci_build || read-s -p "Please enter password for database user '$username': " username_pass
+            is_ci_build || read -r -s -p "Please enter password for database user '$username': " username_pass
             echo
             if [ "$username_pass" == "" ]; then
                 echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
