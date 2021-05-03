@@ -12,9 +12,8 @@ configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
 skip_estonian=y
 #
-# 
+#
 app_name=misp2
-
 
 #
 # installation locations
@@ -41,8 +40,6 @@ xroad_member_classes="COM,ORG,GOV,NEE"
 international_member_classes="COM,NGO,ORG,GOV"
 mobile_id_truststore_path="$misp2_tomcat_resources/mobiili_id_trust_store.p12"
 
-
-
 # recognizing the continuous build - should happen with apt-get install -qq..
 # for asking nothing from user and setting everything for MISP AWS test setup.
 #         if that's not possible, fail fast (exit 1)
@@ -66,7 +63,6 @@ function ci_fails {
         exit 1
     fi
 }
-
 
 ##
 # @return success code (0) if MISP2 deployment directory with conf files exist
@@ -103,7 +99,7 @@ function wait_for_misp2_deployment {
     local start_time=$SECONDS
     local time_spent=""
     while ! misp2_deployed; do
-        local time_spent=$(($SECONDS - $start_time))
+        local time_spent=$((SECONDS - start_time))
         echo -ne "...Waiting for MISP2 webapp deployment... ($time_spent s)"\\r >> /dev/stderr
         sleep 0.5
     done
@@ -138,7 +134,7 @@ function wait_for_misp2_undeployment {
     local start_time=$SECONDS
     local time_spent=""
     while ! misp2_undeployed; do
-        local time_spent=$(($SECONDS - $start_time))
+        local time_spent=$((SECONDS - start_time))
         echo -ne "...Waiting for MISP2 webapp undeployment... ($time_spent s)"\\r >> /dev/stderr
         sleep 0.5
     done
@@ -169,12 +165,12 @@ function replace_conf_prop {
 # It's needed for Mobile ID authentication
 ##
 function add_trusted_apache_certs_to_jks_store {
-    local mobile_id_truststore_p12_file truststore_dir 
-    local mobile_id_truststore_file standard_trust_store_pwd standard_trust_store_pwd 
+    local mobile_id_truststore_p12_file truststore_dir
+    local mobile_id_truststore_file standard_trust_store_pwd standard_trust_store_pwd
     local apache_cert_files cert_alias
-    mobile_id_truststore_p12_file="$1"  # full path to intended .p12 file
-    truststore_dir=$(dirname "${mobile_id_truststore_p12_file}" )
-    mobile_id_truststore_file="${truststore_dir}/$(basename  --suffix=.p12 "${mobile_id_truststore_p12_file}")"
+    mobile_id_truststore_p12_file="$1" # full path to intended .p12 file
+    truststore_dir=$(dirname "${mobile_id_truststore_p12_file}")
+    mobile_id_truststore_file="${truststore_dir}/$(basename --suffix=.p12 "${mobile_id_truststore_p12_file}")"
     standard_trust_store_pwd="${username_pass:-secret}"
 
     apache_cert_files=$(find ${apache2}/ssl/ -regex '.*trusted_crt.pem')
@@ -244,11 +240,11 @@ function synchronize_new_properties_to_backup_at() {
     fi
 }
 
-function restore_app_configuration_from  () {
+function restore_app_configuration_from() {
     local backup_dir="$1"
     echo " === Restoring configuration === " >> /dev/stderr
     ### restoring configuration
-    if [ ! -d $misp2_tomcat_resources -o ! -d $tomcat_home/webapps/$app_name/META-INF ]; then
+    if [ ! -d $misp2_tomcat_resources ] || [ ! -d $tomcat_home/webapps/$app_name/META-INF ]; then
         echo -e "\t\t WARNING! Previou)=s configuration could not be restored. \n\
                  Either Tomcat was not running or deployment of the application did not finish in time.\n\
                  When installation is complete copy the files: \n\
@@ -260,7 +256,7 @@ function restore_app_configuration_from  () {
         cp "${backup_dir}"/orgportal-conf.cfg.bkp $misp2_tomcat_resources/orgportal-conf.cfg
         cp "${backup_dir}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
         cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
-        add_trusted_apache_certs_to_jks_store  "$mobile_id_truststore_path"
+        add_trusted_apache_certs_to_jks_store "$mobile_id_truststore_path"
     fi
 }
 
@@ -278,15 +274,14 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo " "
     } >> /dev/stderr
 
-
-    conf_backup=$( mktemp --directory --tmpdir misp2_config_backup_XXXXXX)
+    conf_backup=$(mktemp --directory --tmpdir misp2_config_backup_XXXXXX)
 
     ### backing configuration up
     backup_app_configuration_to "$conf_backup"
-    
+
     #Synchronize existing config properties with default ones
     synchronize_new_properties_to_backup_at "${conf_backup}"
-   
+
     # remove ^M from config file
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
 
@@ -303,7 +298,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     cp $xrd_prefix/app/*.war $tomcat_home/webapps/$app_name.war
     wait_for_misp2_deployment
 
-    restore_app_configuration_from  "$conf_backup"
+    restore_app_configuration_from "$conf_backup"
 
     ### replacing new key values in configuration
     if grep -Eq 'languages\s*=\s*et' $misp2_tomcat_resources/config.cfg; then
@@ -318,7 +313,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
             xroad_instances=$international_xroad_instances
             echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-            [ -z "$PS1" ] || read user_xroad_instances < /dev/tty
+            [ -z "$PS1" ] || read -r  user_xroad_instances < /dev/tty
             if [ "$user_xroad_instances" != "" ]; then
                 xroad_instances=$user_xroad_instances
             fi
@@ -331,7 +326,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
             xroad_member_classes=$international_member_classes
             echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-            [ -z "$PS1" ] || read user_xroad_member_classes < /dev/tty
+            [ -z "$PS1" ] || read -r user_xroad_member_classes < /dev/tty
             if [ "$user_xroad_member_classes" != "" ]; then
                 xroad_member_classes=$user_xroad_member_classes
             fi
@@ -349,14 +344,17 @@ else
     if [ "$skip_estonian" != "y" ]; then
         echo -n "Do you want to configure as international version (if no, then will be configured as estonian version)? [y/n] [default: n]: " >> /dev/stderr
         ci_fails "no questions possible"
-        read configure_international < /dev/tty
+        read -r configure_international < /dev/tty
     fi
 
     # Override original config properties with international config properties
     # Synchronize international conf with original, if application is configured as international version
     if [ "$configure_international" == "y" ]; then
-        java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar -s $xrd_prefix/app/config.orig.cfg -t $xrd_prefix/app/config.origForInternational.cfg -r $xrd_prefix/app/config.orig.cfg -e ISO-8859-1
-        if [ $? -ne 0 ]; then
+
+        if ! java -Xmx1024M -jar $xrd_prefix/app/propertySynchronizer.jar \
+            -s $xrd_prefix/app/config.orig.cfg \
+            -t $xrd_prefix/app/config.origForInternational.cfg \
+            -r $xrd_prefix/app/config.orig.cfg -e ISO-8859-1; then
             echo "Original and international config synchronization has failed" >> /dev/stderr
             exit 1
         fi
@@ -365,28 +363,28 @@ else
     ### database config
 
     echo -n "Please provide database host IP to be used [default: $host]: " >> /dev/stderr
-    [ -z "$PS1" ] || read user_host < /dev/tty
+    [ -z "$PS1" ] || read -r user_host < /dev/tty
     if [ "$user_host" == "" ]; then
         user_host=$host
     fi
     host=$user_host
 
     echo -n "Please provide database port to be used [default: $port]: " >> /dev/stderr
-    [ -z "$PS1" ] || read user_port < /dev/tty
+    [ -z "$PS1" ] || read -r user_port < /dev/tty
     if [ "$user_port" == "" ]; then
         user_port=$port
     fi
     port=$user_port
 
     echo -n "Please provide database name to be used [default: $db_name]: " >> /dev/stderr
-    [ -z "$PS1" ] || read user_db < /dev/tty
+    [ -z "$PS1" ] || read -r user_db < /dev/tty
     if [ "$user_db" == "" ]; then
         user_db=$db_name
     fi
     db_name=$user_db
 
     echo -n "Please provide username to be communicating with database [default: $username]: " >> /dev/stderr
-    [ -z "$PS1" ] || read user_username < /dev/tty
+    [ -z "$PS1" ] || read -r user_username < /dev/tty
     if [ "$user_username" == "" ]; then
         user_username=$username
     fi
@@ -429,7 +427,7 @@ else
             while [ "$mobile_id_relying_party_uuid" == "" ]; do
                 echo "Please provide your Mobile-ID relying party UUID" >> /dev/stderr
                 echo -n " (format: 00000000-0000-0000-0000-000000000000): " >> /dev/stderr
-                [ -z "$PS1" ] || read mobile_id_relying_party_uuid < /dev/tty
+                [ -z "$PS1" ] || read -r mobile_id_relying_party_uuid < /dev/tty
                 if [ "$mobile_id_relying_party_uuid" == "" ]; then
                     echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
                 fi
@@ -437,7 +435,7 @@ else
 
             while [ "$mobile_id_relying_party_name" == "" ]; do
                 echo -n "Please provide your Mobile-ID relying party name: " >> /dev/stderr
-                read mobile_id_relying_party_name < /dev/tty
+                read -r mobile_id_relying_party_name < /dev/tty
                 if [ "$mobile_id_relying_party_name" == "" ]; then
                     echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
                 fi
@@ -466,13 +464,13 @@ else
         user_email_sender=$email_sender
     fi
     email_sender=$user_email_sender
-    email_sender=$(echo $email_sender | sed 's/\@/\\@/g') >> /dev/stderr
+    email_sender=${email_sender//\@/\\@} >> /dev/stderr
 
     # Prompt for user input if configure_international=y and international_xroad_instances variable is set
     if [ "$configure_international" == "y" ] && [ -n "${international_xroad_instances+x}" ]; then
         xroad_instances=$international_xroad_instances
         echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-        [ -z "$PS1" ] || read user_xroad_instances < /dev/tty
+        [ -z "$PS1" ] || read -r user_xroad_instances < /dev/tty
         if [ "$user_xroad_instances" != "" ]; then
             xroad_instances=$user_xroad_instances
         fi
@@ -482,7 +480,7 @@ else
     if [ "$configure_international" == "y" ] && [ -n "${international_member_classes+x}" ]; then
         xroad_member_classes=$international_member_classes
         echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-        [ -z "$PS1" ] || read user_xroad_member_classes < /dev/tty
+        [ -z "$PS1" ] || read -r user_xroad_member_classes < /dev/tty
         if [ "$user_xroad_member_classes" != "" ]; then
             xroad_member_classes=$user_xroad_member_classes
         fi
@@ -539,8 +537,8 @@ else
     if [ -f $apache2/ssl/MISP2_CA_key.der ]; then
         cp $apache2/ssl/MISP2_CA_key.der $misp2_tomcat_resources/certs/MISP2_CA_key.der
     fi
-    if [ $exit1 -ne 0 -o $exit2 -ne 0 ]; then
-        echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat. Please make sure that Tomcat is running and rerun the installation. Exit codes: $exit1 $exit2 $exit3" >> /dev/stderr
+    if [ $exit1 -ne 0 ] || [ $exit2 -ne 0 ]; then
+        echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat. Please make sure that Tomcat is running and rerun the installation. Exit codes: $exit1 $exit2" >> /dev/stderr
         exit 1
     else
         echo "Configuration files created" >> /dev/stderr
