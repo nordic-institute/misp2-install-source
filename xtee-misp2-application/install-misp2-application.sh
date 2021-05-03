@@ -254,9 +254,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo "Config properties synchronization has failed" >> /dev/stderr
         exit 1
     fi
-
-    # check if localhost:8080 exists and rewrite it to localhost (since v. 1.20 Tomcat port 8080 in closed)
-    sed 's/localhost:8080/localhost/g' -i "${conf_backup}"/config.cfg.bkp
+    
     # remove ^M from config file
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
     # replace default producer filtering property since producer identifier changed in ver 2.1.28
