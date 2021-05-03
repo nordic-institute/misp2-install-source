@@ -254,11 +254,10 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
         echo "Config properties synchronization has failed" >> /dev/stderr
         exit 1
     fi
-    
+
     # remove ^M from config file
     sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
-    # replace default producer filtering property since producer identifier changed in ver 2.1.28
-    perl -pi -e 'BEGIN {$text = q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+)|([^:]+:[^:]+:generic-consumer}; $text2=q{xrd.v6.exclude_producers_regex = ^([^:]+:[^:]+:[^:]+)|([^:]+:[^:]+:[^:]+:generic-consumer}} s/\Q$text\E/$text2/g' "${conf_backup}"/config.cfg.bkp
+
     # config.cfg replacements done
     # rewrite context file
     perl -pi -e "s/APP_NAME/$app_name/g" $xrd_prefix/app/context.orig.xml
