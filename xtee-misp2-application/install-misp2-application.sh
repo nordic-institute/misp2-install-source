@@ -281,6 +281,12 @@ function deploy_misp2() {
     wait_for_misp2_deployment
 }
 
+function undeploy_misp2() {
+    echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
+    rm -rf $tomcat_home/webapps/$app_name*
+    wait_for_misp2_undeployment
+
+}
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -290,6 +296,10 @@ ensure_tomcat_is_running
 query_for_valid_tomcat_home_dir_if_needed
 
 if [ -d $tomcat_home/webapps/$app_name ]; then
+    #
+    #  Upgrade install
+    #
+
     {
         echo " === Found MISP2 deploy directory so upgrading MISP2 application  ==="
         echo " "
@@ -306,15 +316,16 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     correct_context_xml_and_admintool_sh_with_app_name "$app_name"
 
-    echo " === Undeploying previous version of MISP2 web application === " >> /dev/stderr
-    rm -rf $tomcat_home/webapps/$app_name*
-    wait_for_misp2_undeployment
+    undeploy_misp2
 
     deploy_misp2
     
     restore_app_configuration_from "$conf_backup"
 
    else
+    #
+    #  New install
+    #
     echo "Did not find MISP2 deploy directory '$tomcat_home/webapps/$app_name' so installing new.." >> /dev/stderr
     echo " " >> /dev/stderr
     
