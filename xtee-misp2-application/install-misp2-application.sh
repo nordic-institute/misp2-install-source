@@ -364,9 +364,8 @@ else
 
     # Only prompt when estonian portal related questions are not skipped
     if [ "$skip_estonian" != "y" ]; then
-        echo -n "Do you want to configure as international version (if no, then will be configured as estonian version)? [y/n] [default: n]: " >> /dev/stderr
-        ci_fails "no questions possible"
-        read -r configure_international < /dev/tty
+        ask_with_prompt_and_default_to_ANSWER "Do you want to configure as international version (if no, then will be configured as estonian version)?" "$configure_international"
+        configure_international="$ANSWER"
     fi
 
     # Override original config properties with international config properties
@@ -401,7 +400,6 @@ else
         done
     fi
 
-    echo "" >> /dev/stderr
     if [ "$skip_estonian" != "y" ]; then
         ### configure Mobile-ID
         ###
@@ -434,7 +432,6 @@ else
             done
 
             # import Apache2 certs to trust store in MISP2 deployment directory
-
             add_trusted_apache_certs_to_jks_store "${mobile_id_truststore_path}"
 
         fi
@@ -442,37 +439,23 @@ else
 
     ### configure mail servers
     ##
-    echo -n "Please provide SMTP host address [default: $email_host]: " >> /dev/stderr
-    is_ci_build || readuser_email_host < /dev/tty
-    if [ "$user_email_host" == "" ]; then
-        user_email_host=$email_host
-    fi
-    email_host=$user_email_host
+    ask_with_prompt_and_default_to_ANSWER "Please provide SMTP host address" $email_host >> /dev/stderr
+    email_host="$ANSWER"
 
     ### sender address
-    echo -n "Please provide server email address: [default: $email_sender]: " >> /dev/stderr
-    is_ci_build || read -r user_email_sender < /dev/tty
-    if [ "$user_email_sender" == "" ]; then
-        user_email_sender=$email_sender
-    fi
-    email_sender=$user_email_sender
-    email_sender=${email_sender//\@/\\@} >> /dev/stderr
+    ask_with_prompt_and_default_to_ANSWER "Please provide server email address:" $email_sender
+    email_sender="$ANSWER"
+    email_sender=${email_sender//\@/\\@} 
 
     # Prompt for user input if configure_international=y
     if [ "$configure_international" == "y" ]; then
         xroad_instances=$international_xroad_instances
-        echo -n "Please provide X-Road v6 instances (comma separated list)? [default: $xroad_instances] " >> /dev/stderr
-        is_ci_build || read -r user_xroad_instances < /dev/tty
-        if [ "$user_xroad_instances" != "" ]; then
-            xroad_instances=$user_xroad_instances
-        fi
-
+        ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 instances (comma separated list)?" $xroad_instances
+        xroad_instances="$ANSWER"
+    
         xroad_member_classes=$international_member_classes
-        echo -n "Please provide X-Road v6 member classes (comma separated list)? [default: $xroad_member_classes] " >> /dev/stderr
-        is_ci_build || read -r user_xroad_member_classes < /dev/tty
-        if [ "$user_xroad_member_classes" != "" ]; then
-            xroad_member_classes=$user_xroad_member_classes
-        fi
+        ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 member classes (comma separated list)?" $xroad_member_classes
+        xroad_member_classes="$ANSWER"
     fi
 
     ### updating configuration files using perl replace
