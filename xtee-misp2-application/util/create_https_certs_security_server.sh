@@ -9,6 +9,7 @@ tomcat_restart=$1
 tomcat_home=/var/lib/tomcat8
 tomcat_init=/etc/init.d/tomcat8
 conf_dir=/usr/xtee/apache2
+create_sslproxy_cert=/etc/apache2/ssl/create_sslproxy_cert.sh
 
 #
 #   functions
@@ -156,7 +157,7 @@ if [ -f cert.cer ]; then
     keytool -import -keystore misp2truststore.jks -file cert.cer -storepass "$truststore_password"
 
     echo "Adding webapp private key to keystore."
-    sh /etc/apache2/ssl/create_sslproxy_cert.sh
+    sh "${create_sslproxy_cert}"
 
     openssl pkcs12 -export -in sslproxy.cert -inkey sslproxy.key -out misp2.p12 -passout "pass:$keystore_password"
 
