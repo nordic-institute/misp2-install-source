@@ -274,7 +274,7 @@ function restore_app_configuration_from() {
     fi
 }
 
-function correct_context_xml_and_admintool_sh_with_app_name() {
+function fix_app_name_in_context_xml_and_admintool_sh() {
     local name
     name="$1"
     perl -pi -e "s/APP_NAME/$name/g" $xrd_prefix/app/context.orig.xml
@@ -343,7 +343,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     remove_carriage_returns "${conf_backup}"/config.cfg.bkp
 
-    correct_context_xml_and_admintool_sh_with_app_name "$app_name"
+    fix_app_name_in_context_xml_and_admintool_sh "$app_name"
 
     undeploy_misp2
 
@@ -505,8 +505,7 @@ else
 
     remove_carriage_returns $xrd_prefix/app/config.orig.cfg
 
-    ### META-INF/context.xml config
-    correct_context_xml_and_admintool_sh_with_app_name "$app_name"
+    fix_app_name_in_context_xml_and_admintool_sh "$app_name"
 
     wait_for_misp2_deployment
 
