@@ -26,23 +26,25 @@
 # ./configure_admin_interface_ip.sh change "192.168.1.1 10.1.1.0/24"
 ###
 
-# Read input arguments
-# By default, IPs are added to allowed IP list.
-action=add
-if [ "$1" != "" ]; then
-    action=$1
-fi
-
-# If action is unknown, exit
-action_regex="add|change|help"
-if ! (echo "$action" | grep -Eq "$action_regex"); then
-    echo "ERROR: Unknown action '$action'. Expected $action_regex."
-    exit 1
-elif [ "$action" == "help" ]; then
-    # print out current script doctype
-    perl -nle 'print if /^###$/ .. /^$/' "$0"
-    exit 0
-fi
+#
+#  functions
+#
+function handle_action_argument() {
+    local action_argument="$1"
+    if [ "$action_argument" != "" ]; then
+        action=$action_argument
+    fi
+    # If action is unknown, exit
+    local action_regex="add|change|help"
+    if ! (echo "$action" | grep -Eq "$action_regex"); then
+        echo "ERROR: Unknown action '$action'. Expected $action_regex."
+        exit 1
+    elif [ "$action" == "help" ]; then
+        # print out current script doctype
+        perl -nle 'print if /^###$/ .. /^$/' "$0"
+        exit 0
+    fi
+}
 
 ##
 # Validate configuration IP list. Checks for common errors, but not full validation.
@@ -59,33 +61,85 @@ function is_valid_ip_conf {
     return $?
 }
 
-# By default, new admin IP is not given, and script goes to interactive mode
-new_admin_ip=""
-if [ "$2" != "" ]; then
-    new_admin_ip=$2
-    # If given IP is not valid, exit
-    if ! (is_valid_ip_conf "$new_admin_ip"); then
-        echo "ERROR: Not valid IP address(es): '$new_admin_ip'."
+function handle_new_admin_ip_argument() {
+    admin_argument="$1"
+    if [ "$admin_argument" != "" ]; then
+        new_admin_ip="$admin_argument"
+        # If given IP is not valid, exit
+        if ! (is_valid_ip_conf "$new_admin_ip"); then
+            echo "ERROR: Not valid IP address(es): '$new_admin_ip'."
+            exit 1
+        fi
+    fi
+}
+
+function validate_apache_conf_location_argument() {
+    conf_location_argument="$1"
+    if [ "$conf_location_argument" != "" ]; then
+        apache_conf_location=$conf_location_argument
+    fi
+    # if apache conf is not writable, return error
+    if [[ ! -w "$apache_conf_location" ]]; then
+        echo -n "ERROR: File $apache_conf_location cannot be accessed. "
+        if [[ ! -f "$apache_conf_location" ]]; then
+            echo "File does not exist."
+        else
+            echo "Are you root?"
+        fi
         exit 1
     fi
-fi
+}
+
+function get_default_admin_ip() {
+    local ssh_remote_ip logged_in_remote_ip
+    # Find SSH session remote IP.
+    # IP address, if it exists, is read from netstat output
+    ssh_remote_ip=$(netstat -tnpa | grep 'ESTABLISHED.*sshd' \
+        | tail -n 1 | awk '{print $5}' | perl -nle 'print $& if m{.*(?=:)}')
+    # Also run 'last' util and find currently logged in user remote IP.
+    # This should be the same as ssh_remote_ip, so it is compared to ssh_remote_ip
+    # to make sure the SSH user has not only establised connection, but also logged in
+    logged_in_remote_ip=$(last | perl -nle "print $& if m{pts/[0-9]+.*still logged in\s*$}" \
+        | awk '{print $2}' | head -n 1)
+    #
+    # if SSH remote IP exists, use that as default, else use existing IP in apache2 config
+    if [ "$ssh_remote_ip" != "" ] && [ "$ssh_remote_ip" == "$logged_in_remote_ip" ] \
+        && is_valid_ip_conf "$ssh_remote_ip"; then
+        default_admin_ip="$ssh_remote_ip"
+        echo "User remote IP is '$ssh_remote_ip'."
+    else
+        default_admin_ip="$apache_conf_admin_ip"
+    fi
+}
+ANSWER=
+function ask_with_prompt_and_default_to_ANSWER() {
+    local prompt default value
+    default="${2}"
+    prompt="$1 [default: ${default}]: "
+    read -r -p "$prompt" value < /dev/tty
+    if [ "$value" == "" ]; then
+        value=$default
+    fi
+    ANSWER="${value}"
+}
+#
+# action begins
+#
+
+# Read input arguments
+
+# By default, IPs are added to allowed IP list.
+action=add
+handle_action_argument "$1"
+
+# By default, new admin IP is not given, and script goes to interactive mode
+new_admin_ip=""
+handle_new_admin_ip_argument "$2"
 
 # Set apache conf location
 apache_conf_location=/etc/apache2/sites-available/ssl.conf
-if [ "$3" != "" ]; then
-    apache_conf_location=$3
-fi
+validate_apache_conf_location_argument "$3"
 
-# if apache conf is not writable, return error
-if [[ ! -w "$apache_conf_location" ]]; then
-    echo -n "ERROR: File $apache_conf_location cannot be accessed. "
-    if [[ ! -f "$apache_conf_location" ]]; then
-        echo "File does not exist."
-    else
-        echo "Are you root?"
-    fi
-    exit 1
-fi
 # done reading input arguments
 
 # regex representing section that comes before allowed admin interface IP list in apache2 conf
@@ -110,42 +164,19 @@ else
         echo "IP address from which administrator interface can be accessed " \
             "is currently '$apache_conf_admin_ip' in $apache_conf_location."
     fi
-    # Find SSH session remote IP.
-    # IP address, if it exists, is read from netstat output
-    ssh_remote_ip=$(netstat -tnpa | grep 'ESTABLISHED.*sshd' \
-        | tail -n 1 | awk '{print $5}' | perl -nle 'print $& if m{.*(?=:)}')
-    # Also run 'last' util and find currently logged in user remote IP.
-    # This should be the same as ssh_remote_ip, so it is compared to ssh_remote_ip
-    # to make sure the SSH user has not only establised connection, but also logged in
-    logged_in_remote_ip=$(last | perl -nle "print $& if m{pts/[0-9]+.*still logged in\s*$}" \
-        | awk '{print $2}' | head -n 1)
-    #
-    # if SSH remote IP exists, use that as default, else use existing IP in apache2 config
-    if [ "$ssh_remote_ip" != "" ] && [ "$ssh_remote_ip" == "$logged_in_remote_ip" ] \
-        && is_valid_ip_conf "$ssh_remote_ip"; then
-        default_admin_ip="$ssh_remote_ip"
-        echo "User remote IP is '$ssh_remote_ip'."
-    else
-        default_admin_ip="$apache_conf_admin_ip"
-    fi
+
+    default_admin_ip=""
+    get_default_admin_ip
 
     # Run user input loop
     while [ "$new_admin_ip" == "" ]; do
         if [ "$action" == "change" ]; then
-            echo -n "Please provide IP address(es) allowed to access administrator" \
-                "interface: [default: $default_admin_ip] "
+            ip_prompt="Please provide IP address(es) allowed to access administrator interface:"
         elif [ "$action" == "add" ]; then
-            echo -n "Please provide IP address(es) to be added to administrator" \
-                "interface access list: [default: $default_admin_ip] "
-        else
-            echo "ERROR: Unknown action '$action'."
-            exit 1
+            ip_prompt="Please provide IP address(es) to be added to administrator interface access list:"
         fi
-
-        read -r new_admin_ip < /dev/tty
-        if [ "$new_admin_ip" == "" ]; then
-            new_admin_ip="$default_admin_ip"
-        fi
+        ask_with_prompt_and_default_to_ANSWER "$ip_prompt" "$default_admin_ip"
+        new_admin_ip="$ANSWER"
         # Check that input resembles list of IPv4 network addresses or keyward 'all'
         if ! (is_valid_ip_conf "$new_admin_ip"); then
             echo "Input '$new_admin_ip' is not a valid IPv4 network address or list thereof."
@@ -154,25 +185,15 @@ else
         fi
     done
 
+    if echo "$apache_conf_admin_ip" | grep -q "$new_admin_ip"; then
+        echo "'$new_admin_ip' already enabled. Administrator interface access was not changed."
+        exit 0
+    fi
     # If IP-s are added to existing ones
     if [ "$action" == "add" ]; then
-        # If new admin IP-s have already been added, do not write
-        if echo "$apache_conf_admin_ip" | grep -q "$new_admin_ip"; then
-            echo "'$new_admin_ip' already enabled. Administrator interface access was not changed."
-            exit 0
-        else
-            # Concatinate new IP-s with existing IP-s
-            new_admin_ip="$apache_conf_admin_ip $new_admin_ip"
-        fi
-    # If IP-s are overwritten
-    else
-        # If the same IP already exists, there's no reason to overwrite
-        if [ "$new_admin_ip" == "$apache_conf_admin_ip" ]; then
-            echo "Administrator interface access '$new_admin_ip' was not changed."
-            exit 0
-        fi
+        # Concatinate new IP-s with existing IP-s
+        new_admin_ip="$apache_conf_admin_ip $new_admin_ip"    
     fi
-
     # Escape forward slashes in user input so it can be used as a perl-replacement string
     new_admin_ip_quoted="${new_admin_ip//[\/]/\\\/}"
     # Perform IP replacement in apache config file
