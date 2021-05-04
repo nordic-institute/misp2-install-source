@@ -156,10 +156,14 @@ if [ -f cert.cer ]; then
     echo "Adding Security Server certificate to truststore."
     keytool -import -keystore misp2truststore.jks -file cert.cer -storepass "$truststore_password"
 
-    echo "Adding webapp private key to keystore."
-    sh "${create_sslproxy_cert}"
+	
 
-    openssl pkcs12 -export -in sslproxy.cert -inkey sslproxy.key -out misp2.p12 -passout "pass:$keystore_password"
+    echo "Adding webapp private key to keystore "
+	# this creates files sslproxy.cert and sslproxy.key
+    sh "${create_sslproxy_cert}"
+	sslproxy_cert_basename="sslproxy"
+
+    openssl pkcs12 -export -in ${sslproxy_cert_basename}.cert -inkey ${sslproxy_cert_basename}.key -out misp2.p12 -passout "pass:$keystore_password"
 
     keytool -importkeystore -srcstoretype PKCS12 -srckeystore misp2.p12 -destkeystore misp2keystore.jks \
         -keypass "$keystore_password" -deststorepass "$keystore_password" -srcstorepass "$keystore_password"
@@ -185,7 +189,7 @@ if [ -f cert.cer ]; then
     fi
     out_cert_path="$conf_dir/$out_cert_name"
     # Copy preserving original access rights and owner of sslproxy.cert
-    cp -p sslproxy.cert "$out_cert_path"
+    cp -p ${sslproxy_cert_basename}.cert "$out_cert_path"
     echo
     echo "Get '$out_cert_path' and add it to your Security Server."
     echo
