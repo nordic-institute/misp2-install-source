@@ -312,6 +312,11 @@ function ask_with_prompt_and_default_to_ANSWER() {
     ANSWER="${value}"
 }
 
+function remove_carriage_returns() {
+    local file="$1"
+    sed -i s/\\r//g "$file"
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -336,8 +341,7 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
 
     synchronize_new_properties_to_backup_at "${conf_backup}"
 
-    # remove ^M from config file
-    sed -i s/\\r//g "${conf_backup}"/config.cfg.bkp
+    remove_carriage_returns "${conf_backup}"/config.cfg.bkp
 
     correct_context_xml_and_admintool_sh_with_app_name "$app_name"
 
@@ -498,7 +502,8 @@ else
         fi
 
     fi
-    sed -i s/\\r//g $xrd_prefix/app/config.orig.cfg
+
+    remove_carriage_returns $xrd_prefix/app/config.orig.cfg
 
     ### META-INF/context.xml config
     correct_context_xml_and_admintool_sh_with_app_name "$app_name"
