@@ -11,13 +11,6 @@ tomcat_home=/var/lib/tomcat8
 tomcat_init=/etc/init.d/tomcat8
 conf_dir=/usr/xtee/apache2
 
-function ci_fails {
-    if [ $ci_setup == "y" ]; then
-        echo "CI setup fails ... $1"
-        exit 1
-    fi
-}
-
 echo "Creating ssl certificate" >> /dev/stderr
 
 # If $conf_dir has been made not readable with 'tar' (700 access rights)
@@ -49,7 +42,7 @@ while [ ! -f certs.tar.gz ] && [ ! -f proxycert.tar.gz ] || [ $first_loop == tru
 
     echo "Please add Security Server certificate archive 'certs.tar.gz' to the MISP2 server directory '$conf_dir/'."
     echo -n "Proceed with HTTPS configuration? (Answering 'no' means that HTTPS configuration will not be done this time) [y/n] [default: n] "
-    [ -z "$PS1" ] || read add_sec_cert < /dev/tty
+    read -r add_sec_cert < /dev/tty
     if [ "$add_sec_cert" == "" ]; then
         add_sec_cert="n"
     fi
@@ -94,7 +87,7 @@ if [ -f cert.cer ]; then
         local min_len=6
         password_value="" # global return value
         while [ "$password_value" == "" ]; do
-            [ -z "$PS1" ] || read -s -p "Enter $target password: " password_value && password_value="secret"
+            read -r -s -p "Enter $target password: " password_value
             echo
             # Since passwords are inserted to a bash script that concats Java command line arguments to string,
             # limit allowed characters to avoid problems caused by command line processing
