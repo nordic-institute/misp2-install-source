@@ -46,7 +46,7 @@ while [ ! -f certs.tar.gz ] && [ ! -f proxycert.tar.gz ] || [ $first_loop == tru
     if [ "$add_sec_cert" == "" ]; then
         add_sec_cert="n"
     fi
-    if [ $(echo $add_sec_cert | grep -i y) ]; then
+    if (echo $add_sec_cert | grep -q -i y); then
         continue
     else
         exit 0
@@ -144,7 +144,7 @@ if [ -f cert.cer ]; then
     add_java_opt "$tomcat_path" "javax.net.ssl.keyStorePassword" "$keystore_password"
     echo "Configuration changes done."
 
-    if ! (echo $tomcat_restart | grep -iq omitrestart); then
+    if ! (echo "$tomcat_restart" | grep -iq omitrestart); then
         echo "Restarting Tomcat..."
         if [ ! -f $tomcat_init ]; then
             echo "Shutdown Tomcat..."
