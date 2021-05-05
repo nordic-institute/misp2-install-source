@@ -12,8 +12,7 @@
 configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them;
 skip_estonian=n
-#
-#
+#  application basename 
 app_name=misp2
 
 #
@@ -59,7 +58,18 @@ fi
 #####################
 
 function is_ci_build() {
-    [ "$ci_setup" == "y" ]
+    [ "$ci_setup" == "y" ]{
+    echo "Successfully installed application $app_name"
+    echo "You can change the configuration of application later by editing this file: "
+    echo "$misp2_tomcat_resources/config.cfg"
+    echo ""
+    echo "To get admin access to MISP2 you need to run"
+    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
+    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
+    echo ""
+    echo "To enable HTTPS connection between MISP2 application and security server"
+    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
+} >> /dev/stderr
 }
 function ci_fails {
     if is_ci_build; then
@@ -113,10 +123,18 @@ function wait_for_misp2_deployment {
 # @return success code (0) if MISP2 deployment directory and WAR does not exist
 #         failure code (1) if MISP2 deployment directory or WAR exists
 ##
-function misp2_undeployed {
-    local deploy_dir=$tomcat_home/webapps/$app_name
-    local war_full_path=$deploy_dir.war
-    # Check whether webapp Tomcat deployment directory or the corresponding WAR file exist
+function misp2_undeployed {{
+    echo "Successfully installed application $app_name"
+    echo "You can change the configuration of application later by editing this file: "
+    echo "$misp2_tomcat_resources/config.cfg"
+    echo ""
+    echo "To get admin access to MISP2 you need to run"
+    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
+    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
+    echo ""
+    echo "To enable HTTPS connection between MISP2 application and security server"
+    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
+} >> /dev/stderrat deployment directory or the corresponding WAR file exist
     if [[ -d $deploy_dir ]] \
         || [[ -f $war_full_path ]]; then
         # WAR or deployment directory still exists, webapp has not yet been undeployed
@@ -319,6 +337,161 @@ function remove_carriage_returns() {
     sed -i s/\\r//g "$file"
 }
 
+function set_db_config_variables_asking_from_user() {
+    ask_with_prompt_and_default_to_ANSWER "Please provide database host IP to be used " "$host"
+    host="$ANSWER"
+
+    ask_with_prompt_and_default_to_ANSWER "Please provide database port to be used" $port
+    port="$ANSWER"
+
+    ask_with_prompt_and_default_to_ANSWER "Please provide database name to be used" $db_name
+    db_name="$ANSWER"
+
+    ask_with_prompt_and_default_to_ANSWER "Please provide username to be communicating with database" $username
+    username="$ANSWER"
+
+    # Prompt for DB password
+    if [ "$username_pass" == "" ]; then
+        # Get new password from user
+        while [ "$username_pass" == "" ]; do
+            is_ci_build || read -r -s -p "Please enter password for database user '$username': " username_pass
+            echo
+            if [ "$username_pass" == "" ]; then
+                echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
+            fi
+        done
+    fi
+
+}
+
+function set_config_mobile_id() {
+    local answer="$1"
+    if (echo "$answer" | grep -q -i y); then
+        config_mobile_id=y
+    else
+        config_mobile_id=n
+    fi
+}
+
+function set_mobile_id_variables_asking_from_user() {
+
+    mobile_id_url="https://mid.sk.ee/mid-api"
+    mobile_id_polling_timeout=60
+
+    while [ "$mobile_id_relying_party_uuid" == "" ]; do
+        ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party UUID (format: 00000000-0000-0000-0000-000000000000)" >> /dev/stderr
+        mobile_id_relying_party_uuid="${ANSWER}"
+        if [ "$mobile_id_relying_party_uuid" == "" ]; then
+            echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
+        fi
+    done
+    while [ "$mobile_id_relying_party_name" == "" ]; do
+        ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party name:" >> /dev/stderr
+        mobile_id_relying_party_name="${ANSWER}"
+        if [ "$mobile_id_relying_party_name" == "" ]; then
+            echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
+        fi
+    done
+    # import Apache2 certs to trust store in MISP2 deployment directory
+    add_trusted_apache_certs_to_jks_store "${mobile_id_truststore_path}"
+}
+
+function set_email_config_variables_asking_from_user() {
+    ask_with_prompt_and_default_to_ANSWER "Please provide SMTP host address" $email_host >> /dev/stderr
+    email_host="$ANSWER"
+
+    ask_with_prompt_and_default_to_ANSWER "Please provide server email address:" $email_sender
+    email_sender="$ANSWER"
+    email_sender=${email_sender//\@/\\@}
+}
+
+function set_international_xroad_config_asking_from_user() {
+
+    xroad_instances=$international_xroad_instances
+    ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 instances (comma separated list)?" $xroad_instances
+    xroad_instances="$ANSWER"
+
+    xroad_member_classes=$international_member_classes
+    ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 member classes (comma separated list)?" $xroad_member_classes
+    xroad_member_classes="$ANSWER"
+}
+
+function replace_config_values_in_template() {
+    local config_template=$xrd_prefix/app/config.orig.cfg
+    ### updating configuration files using perl replace
+    ### config.cfg
+    ### with global variables: host, port, db_name, username, username_pass, email_host, email_sender,
+    ###                 xroad_instances, xroad_member_classes
+    ###
+    perl -pi -e "s/MISP2DBHOST/$host/" "$config_template"
+    perl -pi -e "s/MISP2DBPORT/$port/" "$config_template"
+    perl -pi -e "s/MISP2DBNAME/$db_name/" "$config_template"
+    perl -pi -e "s/MISP2DBUSERNAME/$username/" "$config_template"
+
+    # replace '/' with '\/' to create regex replacement string where slashes are quoted
+    username_pass="${username_pass//\//\\\/}"
+    perl -pi -e "s/MISP2DBPASSWORD/$username_pass/" "$config_template"
+    perl -pi -e "s/EMAILHOST/$email_host/" "$config_template"
+    perl -pi -e "s/EMAILSENDER/$email_sender/" "$config_template"
+    perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" "$config_template"
+    perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" "$config_template"
+
+}
+
+function replace_and_enable_mobile_id_config_values_in_template() {
+    ## updates and enables mobile id values in config.orig.cfg based on global variables:
+    ##     mobile_id_url, mobile_id_relying_party_uuid, mobile_id_relying_party_name
+    ##     mobile_id_polling_timeout, username_pass and mobile_id_truststore_path
+    replace_conf_prop "auth.mobileID" "true"
+    if [ "$mobile_id_relying_party_uuid" != "" ]; then
+        replace_conf_prop "mobileID.rest.hostUrl" "$mobile_id_url"
+        replace_conf_prop "mobileID.rest.relyingPartyUUID" "$mobile_id_relying_party_uuid"
+        replace_conf_prop "mobileID.rest.relyingPartyName" "$mobile_id_relying_party_name"
+        replace_conf_prop "mobileID.rest.pollingTimeoutSeconds" "$mobile_id_polling_timeout"
+        replace_conf_prop "mobileID.rest.trustStore.password" "$username_pass"
+        replace_conf_prop "mobileID.rest.trustStore.path" "$mobile_id_truststore_path"
+    fi
+}
+
+function install_config_files_or_exit_from() {
+    function fail_reason_and_exit() {
+        {
+            echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat."
+            echo "Please make sure that Tomcat is running and rerun the installation."
+        } >> /dev/stderr
+        exit 1
+    }
+    local config_template_dir="$1"
+    cp "$config_template_dir/config.orig.cfg" $misp2_tomcat_resources/config.cfg || fail_reason_and_exit
+    cp "$config_template_dir/context.orig.xml" $tomcat_home/webapps/$app_name/META-INF/context.xml || fail_reason_and_exit
+    echo "Configuration files created" >> /dev/stderr
+}
+
+function install_CA_certificates_if_exists_at() {
+    local cert_dir="$1"
+    for cert in MISP2_CA_cert.pem MISP2_CA_key.pem MISP2_CA_key.der; do
+        if [ -f "$cert_dir/$cert" ]; then
+            echo "copying certificate $cert"
+            cp "$cert_dir/$cert" $misp2_tomcat_resources/certs/$cert
+        fi
+    done
+}
+
+function final_greetings_success () {
+    {
+    echo "Successfully installed application $app_name"
+    echo "You can change the configuration of application later by editing this file: "
+    echo "$misp2_tomcat_resources/config.cfg"
+    echo ""
+    echo "To get admin access to MISP2 you need to run"
+    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
+    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
+    echo ""
+    echo "To enable HTTPS connection between MISP2 application and security server"
+    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
+} >> /dev/stderr
+}
+
 ##############################################
 # Begin MISP2 package installation
 ##############################################
@@ -331,7 +504,6 @@ if [ -d $tomcat_home/webapps/$app_name ]; then
     #
     #  Upgrade install
     #
-
     {
         echo " === Found MISP2 deploy directory so upgrading MISP2 application  ==="
         echo " "
@@ -364,129 +536,38 @@ else
 
     deploy_misp2
 
-    # Only prompt when estonian portal related questions are not skipped
     if [ "$skip_estonian" != "y" ]; then
         ask_with_prompt_and_default_to_ANSWER "Do you want to configure as international version (if no, then will be configured as estonian version)?" "$configure_international"
         configure_international="$ANSWER"
     fi
 
-    
-    # Synchronize international conf with original, if application is configured as international version
     # Override original config properties with international config properties
     if [ "$configure_international" == "y" ]; then
         synchronize_new_properties_to_international_config_at $xrd_prefix/app
     fi
 
-    ### database config
-
-    ask_with_prompt_and_default_to_ANSWER "Please provide database host IP to be used " "$host"
-    host="$ANSWER"
-    
-    ask_with_prompt_and_default_to_ANSWER "Please provide database port to be used" $port
-    port="$ANSWER"
-
-    ask_with_prompt_and_default_to_ANSWER "Please provide database name to be used" $db_name
-    db_name="$ANSWER"
-    
-    ask_with_prompt_and_default_to_ANSWER "Please provide username to be communicating with database" $username
-    username="$ANSWER"
-    
-    # Prompt for DB password
-    if [ "$username_pass" == "" ]; then
-        # Get new password from user
-        while [ "$username_pass" == "" ]; do
-            is_ci_build || read -r -s -p "Please enter password for database user '$username': " username_pass
-            echo
-            if [ "$username_pass" == "" ]; then
-                echo "Empty user passwords do not work any more starting from PostgreSQL version 9.5." >> /dev/stderr
-            fi
-        done
-    fi
+    set_db_config_variables_asking_from_user # host, port, db_name, username, username_pass
 
     if [ "$skip_estonian" != "y" ]; then
-        ### configure Mobile-ID
-        ###
-
         ask_with_prompt_and_default_to_ANSWER "Do you want to enable authentication with Mobile-ID? [y/n]" $config_mobile_id
-        if (echo "$ANSWER" | grep -q -i y); then
-            config_mobile_id=y
-        else
-            config_mobile_id=n
-        fi
-
+        set_config_mobile_id "$ANSWER"
         if [ "$config_mobile_id" == "y" ]; then
-            mobile_id_url="https://mid.sk.ee/mid-api"
-            mobile_id_polling_timeout=60
-
-            while [ "$mobile_id_relying_party_uuid" == "" ]; do
-                ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party UUID (format: 00000000-0000-0000-0000-000000000000)" >> /dev/stderr
-                mobile_id_relying_party_uuid="${ANSWER}"
-                if [ "$mobile_id_relying_party_uuid" == "" ]; then
-                    echo "WARNING! UUID cannot be empty. Please try again." >> /dev/stderr
-                fi                
-            done
-
-            while [ "$mobile_id_relying_party_name" == "" ]; do
-                ask_with_prompt_and_default_to_ANSWER "Please provide your Mobile-ID relying party name:" >> /dev/stderr
-                mobile_id_relying_party_name="${ANSWER}"
-                if [ "$mobile_id_relying_party_name" == "" ]; then
-                    echo "WARNING! Name cannot be empty. Please try again." >> /dev/stderr
-                fi
-            done
-
-            # import Apache2 certs to trust store in MISP2 deployment directory
-            add_trusted_apache_certs_to_jks_store "${mobile_id_truststore_path}"
-
+            # mobile_id_url, mobile_id_polling_timeout, mobile_id_relying_party_uuid,
+            # mobile_id_relying_party_name and mobiili_id_trust_store.p12 contents
+            set_mobile_id_variables_asking_from_user
         fi
     fi
 
-    ### configure mail servers
-    ##
-    ask_with_prompt_and_default_to_ANSWER "Please provide SMTP host address" $email_host >> /dev/stderr
-    email_host="$ANSWER"
+    set_email_config_variables_asking_from_user # email_host, email_sender
 
-    ### sender address
-    ask_with_prompt_and_default_to_ANSWER "Please provide server email address:" $email_sender
-    email_sender="$ANSWER"
-    email_sender=${email_sender//\@/\\@} 
-
-    # Prompt for user input if configure_international=y
     if [ "$configure_international" == "y" ]; then
-        xroad_instances=$international_xroad_instances
-        ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 instances (comma separated list)?" $xroad_instances
-        xroad_instances="$ANSWER"
-    
-        xroad_member_classes=$international_member_classes
-        ask_with_prompt_and_default_to_ANSWER "Please provide X-Road v6 member classes (comma separated list)?" $xroad_member_classes
-        xroad_member_classes="$ANSWER"
+        set_international_xroad_config_asking_from_user # xroad_instances, xroad_member_classes
     fi
 
-    ### updating configuration files using perl replace
-    ### config.cfg
-    perl -pi -e "s/MISP2DBHOST/$host/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/MISP2DBPORT/$port/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/MISP2DBNAME/$db_name/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/MISP2DBUSERNAME/$username/" $xrd_prefix/app/config.orig.cfg
-
-    # replace '/' with '\/' to create regex replacement string where slashes are quoted
-    username_pass="${username_pass//\//\\\/}"
-    perl -pi -e "s/MISP2DBPASSWORD/$username_pass/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/EMAILHOST/$email_host/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/EMAILSENDER/$email_sender/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/XROAD_INSTANCES/$xroad_instances/" $xrd_prefix/app/config.orig.cfg
-    perl -pi -e "s/XROAD_MEMBER_CLASSES/$xroad_member_classes/" $xrd_prefix/app/config.orig.cfg
+    replace_config_values_in_template
 
     if [ "$config_mobile_id" == "y" ]; then
-        replace_conf_prop "auth.mobileID" "true"
-        if [ "$mobile_id_relying_party_uuid" != "" ]; then
-            replace_conf_prop "mobileID.rest.hostUrl" "$mobile_id_url"
-            replace_conf_prop "mobileID.rest.relyingPartyUUID" "$mobile_id_relying_party_uuid"
-            replace_conf_prop "mobileID.rest.relyingPartyName" "$mobile_id_relying_party_name"
-            replace_conf_prop "mobileID.rest.pollingTimeoutSeconds" "$mobile_id_polling_timeout"
-            replace_conf_prop "mobileID.rest.trustStore.password" "$username_pass"
-            replace_conf_prop "mobileID.rest.trustStore.path" "$mobile_id_truststore_path"
-        fi
-
+        replace_and_enable_mobile_id_config_values_in_template
     fi
 
     remove_carriage_returns $xrd_prefix/app/config.orig.cfg
@@ -495,28 +576,10 @@ else
 
     wait_for_misp2_deployment
 
-    echo "Copying configuration files..." >> /dev/stderr
-    cp $xrd_prefix/app/config.orig.cfg $misp2_tomcat_resources/config.cfg
-    exit1=$?
-    cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
-    exit2=$?
-    echo "Copying certificates if they exist..." >> /dev/stderr
-    if [ -f $apache2/ssl/MISP2_CA_cert.pem ]; then
-        cp $apache2/ssl/MISP2_CA_cert.pem $misp2_tomcat_resources/certs/MISP2_CA_cert.pem
-        echo "Copying certificates 1" >> /dev/stderr
-    fi
-    if [ -f $apache2/ssl/MISP2_CA_key.pem ]; then
-        cp $apache2/ssl/MISP2_CA_key.pem $misp2_tomcat_resources/certs/MISP2_CA_key.pem
-    fi
-    if [ -f $apache2/ssl/MISP2_CA_key.der ]; then
-        cp $apache2/ssl/MISP2_CA_key.der $misp2_tomcat_resources/certs/MISP2_CA_key.der
-    fi
-    if [ $exit1 -ne 0 ] || [ $exit2 -ne 0 ]; then
-        echo "Cannot copy files. Maybe they haven't yet been deployed by Tomcat. Please make sure that Tomcat is running and rerun the installation. Exit codes: $exit1 $exit2" >> /dev/stderr
-        exit 1
-    else
-        echo "Configuration files created" >> /dev/stderr
-    fi
+    install_config_files_or_exit_from "${xrd_prefix}/app"
+
+    install_CA_certificates_if_exists_at $apache2/ssl
+
 fi
 
 #Remove cached jsp-s, because for some reason Tomcat does not recompile jsp-s currently. After this deletion however, tomcat will compile jsp-s
@@ -525,15 +588,4 @@ rm -f -r /var/cache/tomcat8/Catalina/localhost/$app_name/org/apache/jsp
 echo "Restarting Tomcat..." >> /dev/stderr
 /usr/sbin/invoke-rc.d tomcat8 restart
 
-{
-    echo "Successfully installed application $app_name"
-    echo "You can change the configuration of application later by editing this file: "
-    echo "$misp2_tomcat_resources/config.cfg"
-    echo ""
-    echo "To get admin access to MISP2 you need to run"
-    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
-    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
-    echo ""
-    echo "To enable HTTPS connection between MISP2 application and security server"
-    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
-} >> /dev/stderr
+final_greetings_success
