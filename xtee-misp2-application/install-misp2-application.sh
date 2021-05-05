@@ -406,7 +406,7 @@ else
         ###
 
         ask_with_prompt_and_default_to_ANSWER "Do you want to enable authentication with Mobile-ID? [y/n]" $config_mobile_id
-        if (echo "$ANSWER" | grep -i y) >> /dev/stderr; then
+        if (echo "$ANSWER" | grep -q -i y); then
             config_mobile_id=y
         else
             config_mobile_id=n
