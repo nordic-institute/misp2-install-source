@@ -12,7 +12,7 @@
 configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them;
 skip_estonian=n
-#  application basename 
+# 
 app_name=misp2
 
 #
@@ -58,18 +58,7 @@ fi
 #####################
 
 function is_ci_build() {
-    [ "$ci_setup" == "y" ]{
-    echo "Successfully installed application $app_name"
-    echo "You can change the configuration of application later by editing this file: "
-    echo "$misp2_tomcat_resources/config.cfg"
-    echo ""
-    echo "To get admin access to MISP2 you need to run"
-    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
-    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
-    echo ""
-    echo "To enable HTTPS connection between MISP2 application and security server"
-    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
-} >> /dev/stderr
+    [ "$ci_setup" == "y" ]
 }
 function ci_fails {
     if is_ci_build; then
@@ -123,18 +112,9 @@ function wait_for_misp2_deployment {
 # @return success code (0) if MISP2 deployment directory and WAR does not exist
 #         failure code (1) if MISP2 deployment directory or WAR exists
 ##
-function misp2_undeployed {{
-    echo "Successfully installed application $app_name"
-    echo "You can change the configuration of application later by editing this file: "
-    echo "$misp2_tomcat_resources/config.cfg"
-    echo ""
-    echo "To get admin access to MISP2 you need to run"
-    echo "   - $xrd_prefix/app/admintool.sh  to create the admin user(s) and"
-    echo "   - $xrd_prefix/app/configure_admin_interface_ip.sh to enable access from hosts you need"
-    echo ""
-    echo "To enable HTTPS connection between MISP2 application and security server"
-    echo "you can do it later with $xrd_prefix/create_https_certs_security_server.sh"
-} >> /dev/stderrat deployment directory or the corresponding WAR file exist
+function misp2_undeployed {
+    local deploy_dir=$tomcat_home/webapps/$app_name
+    local war_full_path=$deploy_dir.war
     if [[ -d $deploy_dir ]] \
         || [[ -f $war_full_path ]]; then
         # WAR or deployment directory still exists, webapp has not yet been undeployed
