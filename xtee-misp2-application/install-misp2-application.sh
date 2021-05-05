@@ -11,7 +11,7 @@
 # 'y' if portal is configured in international mode, 'n' if not;
 configure_international=y
 # 'y' to skip estonian portal related prompt questions, 'n' to include them;
-skip_estonian=y
+skip_estonian=n
 #
 #
 app_name=misp2
@@ -82,11 +82,7 @@ function misp2_deployed {
         && [[ -f $classes_dir/config.cfg ]] \
         && [[ -f $classes_dir/orgportal-conf.cfg ]] \
         && [[ -f $classes_dir/uniportal-conf.cfg ]] \
-        &&
-        
-
-        #[[ -f $classes_dir/log4j.properties	]] &&
-        [[ -d $meta_inf_dir ]] \
+        && [[ -d $meta_inf_dir ]] \
         && [[ -f $meta_inf_dir/context.xml ]]; then
         # Else webapp has been deployed
         return 0
@@ -196,6 +192,10 @@ function add_trusted_apache_certs_to_jks_store {
     [ -r "${mobile_id_truststore_file}".jks ] && rm "${mobile_id_truststore_file}".jks
 }
 
+##
+# wait until tomcat service runs, try to start again after 1 second sleep
+#
+##
 function ensure_tomcat_is_running() {
     local status_adverb=
     while ! /usr/sbin/invoke-rc.d tomcat8 status > /dev/null; do # do not show output, too verbose
@@ -368,8 +368,9 @@ else
         configure_international="$ANSWER"
     fi
 
-    # Override original config properties with international config properties
+    
     # Synchronize international conf with original, if application is configured as international version
+    # Override original config properties with international config properties
     if [ "$configure_international" == "y" ]; then
         synchronize_new_properties_to_international_config_at $xrd_prefix/app
     fi
