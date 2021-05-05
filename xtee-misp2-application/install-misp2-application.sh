@@ -271,6 +271,8 @@ function restore_app_configuration_from() {
         cp "${backup_dir}"/uniportal-conf.cfg.bkp $misp2_tomcat_resources/uniportal-conf.cfg
         cp $xrd_prefix/app/context.orig.xml $tomcat_home/webapps/$app_name/META-INF/context.xml
         add_trusted_apache_certs_to_jks_store "$mobile_id_truststore_path"
+        # clean after successfull backup
+        rm -rf "${backup_dir}"
     fi
 }
 
