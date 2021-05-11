@@ -12,7 +12,7 @@ set -e
 
 
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then
-    set -v -x
+    set -x
     DEBIAN_SCRIPT_TRACE=1
 fi
 
@@ -20,8 +20,10 @@ fi
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 # Source debconf library.
+if [[  -e /usr/share/debconf/confmodule ]] ; then 
 # shellcheck source=/usr/share/debconf/confmodule
 . /usr/share/debconf/confmodule
+fi
 
 
 #
@@ -212,14 +214,14 @@ if [ "$RET" == "true" ]; then
 fi
 # apache config already installed ?
 apache_ssl_config_exists=n
-db_get xtee-misp2-base/xtee-misp2-base/apache_ssl_config_exists
+db_get xtee-misp2-base/apache_ssl_config_exists
 if [ "$RET" == "true" ]; then
     apache_ssl_config_exists=y
 fi
 
 # can we overwrite the old config?
 apache2_overwrite_confirmation=n
-db_get xtee-misp2-base/xtee-misp2-base/apache2_overwrite_confirmation
+db_get xtee-misp2-base/apache2_overwrite_confirmation
 if [ "$RET" == "true" ]; then
     apache2_overwrite_confirmation=y
 fi
