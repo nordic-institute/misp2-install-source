@@ -20,6 +20,12 @@ Description: Do you want to update SK certificates?
  Estonian users need to update SK certificates from time to time. 
  Is the time now?
 
+Template: xtee-misp2-base/apache_ssl_config_exists
+Type: boolean
+Default: false
+Description: Is there already config in /etc/apache2/ssl?
+  If there is already a config in /etc/apache2/ssl/ directory, 
+  We assume that there has been MISP2 installation already.
 
 Template: xtee-misp2-base/todo-list
 Type: text

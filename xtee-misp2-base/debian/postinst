@@ -4,6 +4,7 @@
 # see: dh_installdeb(1)
 
 set -e
+set -xv
 
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>
@@ -16,6 +17,9 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 #
+
+. /usr/share/debconf/confmodule
+
 chmod 755 /usr/xtee/apache2/install-misp2-base.sh 
 chmod 755 /usr/xtee/apache2/updatecrl.sh 
 #chmod 755 /usr/xtee/apache2/addJavaOpts.pl
@@ -23,7 +27,7 @@ chmod 755 /usr/xtee/apache2/updatecrl.sh
 case "$1" in
     configure)
     echo "postinst of base called with params: 1: $1    2: $2"
-    env DEBCONF_PACKAGE=xtee-misp2-base /usr/xtee/apache2/install-misp2-base.sh 
+    /usr/xtee/apache2/install-misp2-base.sh 
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
 

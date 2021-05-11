@@ -7,15 +7,22 @@
 
 set -e
 
-# Source debconf library.
-# shellcheck source=/usr/share/debconf/confmodule
-. /usr/share/debconf/confmodule
+#export DEBIAN_SCRIPT_DEBUG=true
+
+
+
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then
     set -v -x
     DEBIAN_SCRIPT_TRACE=1
 fi
 
+
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+# Source debconf library.
+# shellcheck source=/usr/share/debconf/confmodule
+. /usr/share/debconf/confmodule
+
 
 #
 # installation locations
@@ -30,27 +37,22 @@ apache2_misp2_home=${apache2_home}/ssl
 xrd_apache_home=${xrd_prefix}/apache2
 
 #
-# installation choices (candidates for debconf handling)
-#
-sk_certs=y
-# 'y' to skip estonian portal related prompt questions, 'n' to include them; value could be replaced before package generation
-skip_estonian=n
-# for CI build we reconfigure ssl.conf anyhow
-apache2_overwrite_confirmation=y
 # CI detection
+#
+
 ci_setup=n
 if [ -a /tmp/ci_installation ]; then
     echo "CI setup noticed" >> /dev/stderr
     ci_setup=y
 fi
-# apache config already installed ?
-apache_ssl_config_exists=n
-if [ -f $apache2_home/sites-available/ssl.conf ]; then
-    apache_ssl_config_exists=y
-else
-    # for no MISP2 apache config exists yet, it means we don't need to overwrite it.
-    apache2_overwrite_confirmation=n
-fi
+
+#
+# installation choices
+#
+#  - before package creation
+skip_estonian=n
+
+
 
 #
 #  functions used by post-install
@@ -198,6 +200,31 @@ function comment_out_SSLCADNRequestPath_apache_config() {
 #
 #   post-install begins
 #
+
+#
+# user installation  choices from debconf 
+#
+set -x
+# has user allowed sk certificate update?
+db_get xtee-misp2-base/sk_certificate_update_confirm
+if [ "$RET" == "true" ]; then
+    sk_certs=y
+fi
+# apache config already installed ?
+apache_ssl_config_exists=n
+db_get xtee-misp2-base/xtee-misp2-base/apache_ssl_config_exists
+if [ "$RET" == "true" ]; then
+    apache_ssl_config_exists=y
+fi
+
+# can we overwrite the old config?
+apache2_overwrite_confirmation=n
+db_get xtee-misp2-base/xtee-misp2-base/apache2_overwrite_confirmation
+if [ "$RET" == "true" ]; then
+    apache2_overwrite_confirmation=y
+fi
+ 
+
 ensure_apache2_is_running
 
 if [ -f ${tomcat_defaults} ]; then
