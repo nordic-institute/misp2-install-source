@@ -9,29 +9,26 @@ set -e
 
 #export DEBIAN_SCRIPT_DEBUG=true
 
-
-
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then
     set -x
     DEBIAN_SCRIPT_TRACE=1
 fi
 
-
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 # Source debconf library.
-if [[  -e /usr/share/debconf/confmodule ]] ; then 
-# shellcheck source=/usr/share/debconf/confmodule
-. /usr/share/debconf/confmodule
+if [[ -e /usr/share/debconf/confmodule ]]; then
+    # shellcheck source=/usr/share/debconf/confmodule
+    . /usr/share/debconf/confmodule
 fi
-
 
 #
 # installation locations
 #
 
 xrd_prefix=/usr/xtee
-tomcat_home=/var/lib/tomcat8
+# use value of CATALINA_BASE or CATALINA_HOME or /var/lib/tomcat8 in priority order
+catalina_base="${CATALINA_BASE:-${CATALINA_HOME:-/var/lib/tomcat8}}"
 tomcat_defaults=/etc/default/tomcat8
 apache2_home=/etc/apache2
 mod_jk_home=/etc/libapache2-mod-jk
@@ -53,8 +50,6 @@ fi
 #
 #  - before package creation
 skip_estonian=n
-
-
 
 #
 #  functions used by post-install
@@ -191,7 +186,6 @@ function remove_client_auth_trust() {
             -out "${root_cert}"_CA_trusted_crt.pem
         rm "${root_cert}"_crt.pem
     done
-
 }
 
 function comment_out_SSLCADNRequestPath_apache_config() {
@@ -199,14 +193,30 @@ function comment_out_SSLCADNRequestPath_apache_config() {
     sed --in-place --regexp-extended --expression="s/^([ \t]*SSLCADNRequestPath.*)/#&1/" $apache_misp2_conf
 }
 
+function assert_tomcat_apache_installed() {
+    if [ ! -d "$catalina_base" ]; then
+        {
+            echo "ERROR: Tomcat instance root $catalina_base is not found."
+            echo "Check tomcat8 installation and env values of CATALINA_BASE and CATALINA_HOME environment variables"
+        } >> /dev/stderr
+        exit 1
+    fi
+    if [ ! -d $apache2_home ]; then
+        echo "ERROR: Apache2 config directory $apache2_home is not found" >> /dev/stderr
+        exit 1
+    fi
+}
+
 #
 #   post-install begins
 #
 
+assert_tomcat_apache_installed
+
 #
-# user installation  choices from debconf 
+# user installation  choices from debconf
 #
-set -x
+
 # has user allowed sk certificate update?
 db_get xtee-misp2-base/sk_certificate_update_confirm
 if [ "$RET" == "true" ]; then
@@ -225,7 +235,6 @@ db_get xtee-misp2-base/apache2_overwrite_confirmation
 if [ "$RET" == "true" ]; then
     apache2_overwrite_confirmation=y
 fi
- 
 
 ensure_apache2_is_running
 
@@ -234,10 +243,10 @@ if [ -f ${tomcat_defaults} ]; then
 fi
 
 #replace server.xml
-cp $xrd_apache_home/server.xml $tomcat_home/conf/
+cp $xrd_apache_home/server.xml "$catalina_base/conf/"
 #remove tomcat ROOT app in case it is not webapp itself
-if [ ! -f $tomcat_home/webapps/ROOT/WEB-INF/classes/config.cfg ]; then
-    rm -rf $tomcat_home/webapps/ROOT
+if [ ! -f "$catalina_base"/webapps/ROOT/WEB-INF/classes/config.cfg ]; then
+    rm -rf "$catalina_base"/webapps/ROOT
 fi
 ### add mod-jk.conf
 cp $xrd_apache_home/jk.conf $apache2_home/mods-available/
@@ -258,7 +267,7 @@ fi
 ## AJP local access
 # Only enable AJP protocol access from localhost to mitigate GhostCat vulnerability
 configure_ajp_local_access_mod_jk_properties "${mod_jk_home}/workers.properties"
-configure_ajp_local_access_tomcat_server_xml "$tomcat_home/conf/server.xml"
+configure_ajp_local_access_tomcat_server_xml "$catalina_base/conf/server.xml"
 
 #certs
 #echo "Updating certificate scripts... "
