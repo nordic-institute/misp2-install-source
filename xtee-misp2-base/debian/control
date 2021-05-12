@@ -1,5 +1,5 @@
 Source: xtee-misp2-base
-Section: unknown
+Section: contrib/web
 Priority: optional
 Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= 11.0.0)
