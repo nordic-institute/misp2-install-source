@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
     # Source debconf library.
     . /usr/share/debconf/confmodule
