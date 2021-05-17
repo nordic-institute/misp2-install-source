@@ -197,7 +197,7 @@ function assert_tomcat_apache_installed() {
     if [ ! -d "$catalina_base" ]; then
         {
             echo "ERROR: Tomcat instance root $catalina_base is not found."
-            echo "Check tomcat8 installation and env values of CATALINA_BASE and CATALINA_HOME environment variables"
+            echo "Check tomcat8 installation and env values of CATALINA_BASE (${CATALINA_BASE}) and CATALINA_HOME (${CATALINA_HOME}) environment variables"
         } >> /dev/stderr
         exit 1
     fi
