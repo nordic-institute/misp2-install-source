@@ -11,3 +11,5 @@ repo-unsigned/
 #Local-only
 upload*.sh
 
+**/files
+*.debhelper
