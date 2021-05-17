@@ -1,13 +1,22 @@
 Template: xtee-misp2-base/sk_certificate_update_confirm
 Type: boolean
 Default: false
-Description: Do you want to update SK certificates?
+Description: Do you want to install SK certificates for Mobiili-ID?
  Estonian users need to update SK certificates from time to time. 
- Is the time now?
+ Here is asked confirmation to do it during MISP2 installation.
+ These SK certificates are also set up for Mobiili-ID authentication use.
 
 Template: xtee-misp2-base/apache_ssl_config_exists
 Type: boolean
 Default: false
-Description: Is there already config in /etc/apache2/ssl?
-  If there is already a config in /etc/apache2/ssl/ directory, 
-  We assume that there has been MISP2 installation already.
+Description: for internal use
+ If there is already a config in /etc/apache2/ssl/ directory, 
+ We assume that there has been MISP2 installation already.
+
+Template: xtee-misp2-base/apache2_overwrite_confirmation
+Type: boolean
+Default: false
+Description: Reset misp2 admin UI access IP addresses with default localhost only?
+ MISP2 admin ui is by default accessible only from localhost i.e. from the machine it is installed in.
+ Earlier MISP2 installation has defined some values for them already in apache2 configuraion, but MISP2 
+ installation can return the defaults if you will.
