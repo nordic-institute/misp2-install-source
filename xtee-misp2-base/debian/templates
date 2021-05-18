@@ -21,17 +21,16 @@ Description: Reset misp2 admin UI access IP addresses with default localhost onl
  Earlier MISP2 installation has defined some values for them already in apache2 configuraion, but MISP2 
  installation can return the defaults if you will.
 
-Template: xtee-misp2-base/text_warn_no_ajp_connector
-Type: error
-Description: WARNING: AJP connector not found from ${tomcat_server_xml}. Cannot configure local AJP access.
-
 Template: xtee-misp2-base/text_error_pem_download_fail
 Type: error
-Description: ERROR: Downloading PEM file '${pem_path}' from '${pem_url}' failed (code: ${code}).
+Description: ERROR: PEM file download failed (code: ${code}).
+ Downloading of the PEM file '${pem_path}' from '${pem_url}' 
+ failed (code: ${code}).
 
 Template: xtee-misp2-base/text_error_pem_format_fail
 Type: error
-Description: ERROR: PEM file '${pem_path}' downloaded from '${pem_url}' is not in correct format.
+Description: ERROR: Incorrect PEM file format
+ PEM file '${pem_path}' downloaded from '${pem_url}' is not in correct format.
 
 Template: xtee-misp2-base/text_error_tomcat_instance_not_found
 Type: error
