@@ -20,3 +20,29 @@ Description: Reset misp2 admin UI access IP addresses with default localhost onl
  MISP2 admin ui is by default accessible only from localhost i.e. from the machine it is installed in.
  Earlier MISP2 installation has defined some values for them already in apache2 configuraion, but MISP2 
  installation can return the defaults if you will.
+
+Template: xtee-misp2-base/text_warn_no_ajp_connector
+Type: error
+Description: WARNING: AJP connector not found from ${tomcat_server_xml}. Cannot configure local AJP access.
+
+Template: xtee-misp2-base/text_error_pem_download_fail
+Type: error
+Description: ERROR: Downloading PEM file '${pem_path}' from '${pem_url}' failed (code: ${code}).
+
+Template: xtee-misp2-base/text_error_pem_format_fail
+Type: error
+Description: ERROR: PEM file '${pem_path}' downloaded from '${pem_url}' is not in correct format.
+
+Template: xtee-misp2-base/text_error_tomcat_instance_not_found
+Type: error
+Description: ERROR: Tomcat instance root ${catalina_base_var} is not found.
+ Check tomcat8 installation and env values of CATALINA_BASE (${CATALINA_BASE}) and 
+ CATALINA_HOME (${CATALINA_HOME}) environment variables.
+
+Template: xtee-misp2-base/text_error_apache2_home_not_found
+Type: error
+Description: ERROR: Apache2 config directory ${apache2_home} is not found!
+
+Template: xtee-misp2-base/text_error_crl_update_failed
+Type: error
+Description: ERROR: CRL update failed. Exiting installation script. 

@@ -55,9 +55,16 @@ skip_estonian=n
 #  functions used by post-install
 #
 
+function show_template() {
+    local template_name
+    template_name="$1"
+    db_input medium "${template_name}" || true
+    # shellcheck disable=SC2119
+    db_go  || true
+}
 function ci_fails() {
     if [ "$ci_setup" == "y" ]; then
-        echo "CI setup fails ... $1"
+        echo "CI setup fails ... $1" >> /dev/stderr
         exit 1
     fi
 }
@@ -148,18 +155,24 @@ function download_pem() {
     local pem_url="$2"
 
     if ! wget -O "$pem_path" "$pem_url"; then
-        echo "ERROR: Downloading PEM file '$pem_path' from '$pem_url' failed (code: $?)." >> /dev/stderr
+        code=$?
+        db_subst xtee-misp2-base/text_error_pem_download_fail pem_path "${pem_path}"
+        db_subst xtee-misp2-base/text_error_pem_download_fail pem_url "${pem_url}"
+        db_subst xtee-misp2-base/text_error_pem_download_fail code "${code}"
+        show_template xtee-misp2-base/text_error_pem_download_fail
         exit 1
     fi
     if ! (head -n 1 "$pem_path" | grep -q "BEGIN CERTIFICATE"); then
-        echo "ERROR: PEM file '$pem_path' downloaded from '$pem_url' is not in correct format." >> /dev/stderr
+        db_subst xtee-misp2-base/text_error_pem_format_fail pem_path "${pem_path}"
+        db_subst xtee-misp2-base/text_error_pem_format_fail pem_url "${pem_url}"
+        show_template
         exit 2
     fi
     return 0
 }
 
 function setup_client_auth_root_certificates() {
-    echo "Updating client root certificates... "
+    echo "Updating client root certificates... " >> /dev/stderr
     client_root_ca_path=$apache2_misp2_home/client_ca
     if [ ! -d $client_root_ca_path ]; then
         mkdir $client_root_ca_path
@@ -190,14 +203,16 @@ function comment_out_SSLCADNRequestPath_apache_config() {
 
 function assert_tomcat_apache_installed() {
     if [ ! -d "$catalina_base" ]; then
-        {
-            echo "ERROR: Tomcat instance root $catalina_base is not found."
-            echo "Check tomcat8 installation and env values of CATALINA_BASE (${CATALINA_BASE}) and CATALINA_HOME (${CATALINA_HOME}) environment variables"
-        } >> /dev/stderr
+
+        db_subst xtee-misp2-base/text_error_tomcat_instance_not_found catalina_base_var "$catalina_base"
+        db_subst xtee-misp2-base/text_error_tomcat_instance_not_found CATALINA_BASE "${CATALINA_BASE}"
+        db_subst xtee-misp2-base/text_error_tomcat_instance_not_found CATALINA_HOME "${CATALINA_HOME}"
+        show_template xtee-misp2-base/text_error_tomcat_instance_not_found
         exit 1
     fi
     if [ ! -d $apache2_home ]; then
-        echo "ERROR: Apache2 config directory $apache2_home is not found" >> /dev/stderr
+        db_subst xtee-misp2-base/text_error_apache2_home_not_found apache2_home ${apache2_home}
+        show_template xtee-misp2-base/text_error_apache2_home_not_found
         exit 1
     fi
 }
@@ -283,7 +298,7 @@ find $apache2_misp2_home -type f -name httpsd.key -perm /077 -exec chmod --verbo
 
 [[ $ci_setup == "y" ]] && sk_certs=n && echo "No Cert download in CI build " >> /dev/stderr
 if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
-    echo "Downloading Estonian root certificates... "
+    echo "Downloading Estonian root certificates... " >> /dev/stderr
     download_pem sk_root_2018_crt.pem https://c.sk.ee/EE-GovCA2018.pem.crt
     download_pem sk_root_2011_crt.pem https://www.sk.ee/upload/files/EE_Certification_Centre_Root_CA.pem.crt
     download_pem sk_esteid_2018_crt.pem https://c.sk.ee/esteid2018.pem.crt
@@ -295,7 +310,7 @@ if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
     remove_client_auth_trust sk_root_2018 sk_root_2011
 
     # OCSP refresh
-    echo "Downloading OCSP certs... "
+    echo "Downloading OCSP certs... " >> /dev/stderr
     download_pem sk_esteid_ocsp_2011.pem https://www.sk.ee/upload/files/SK_OCSP_RESPONDER_2011.pem.cer
 
     mv sk_esteid_ocsp_2011.pem sk_esteid_ocsp.pem
@@ -303,11 +318,11 @@ if [ "$skip_estonian" != "y" ] && [[ "${sk_certs}" == "y" ]]; then
     # update crl
 
     if ! ./updatecrl.sh "norestart"; then
-        echo "ERROR: CRL update failed. Exiting installation script." >> /dev/stderr
+        show_template xtee-misp2-base/text_error_crl_update_failed
         exit 3
     fi
 else
-    echo "No estonian MObiili-ID auth"
+    echo "No estonian MObiili-ID auth" >> /dev/stderr
     comment_out_SSLCADNRequestPath_apache_config
 fi
 
@@ -315,3 +330,4 @@ fi
 c_rehash ./
 
 /usr/sbin/invoke-rc.d apache2 restart
+

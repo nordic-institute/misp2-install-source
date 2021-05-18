@@ -16,7 +16,7 @@ if [ "$config_operation" == "configure" ] || [ "$config_operation" == "reconfigu
         db_set xtee-misp2-base/apache_ssl_config_exists true
         db_input medium xtee-misp2-base/apache2_overwrite_confirmation || true
     fi
-    db_input high  shared/xtee-misp2/international_installation_requested || true
+    db_input medium  shared/xtee-misp2/international_installation_requested || true
     # shellcheck disable=SC2119 # no parameter is intended to be passed
     db_go  || true
 fi
