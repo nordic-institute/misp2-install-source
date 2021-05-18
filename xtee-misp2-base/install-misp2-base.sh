@@ -218,8 +218,10 @@ assert_tomcat_apache_installed
 #
 
 # has user allowed sk certificate update?
-db_get xtee-misp2-base/sk_certificate_update_confirm
+db_get shared/xtee-misp2/international_installation_requested
 if [ "$RET" == "true" ]; then
+    sk_certs=n
+else
     sk_certs=y
 fi
 # apache config already installed ?

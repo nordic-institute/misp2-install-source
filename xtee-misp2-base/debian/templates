@@ -1,10 +1,10 @@
-Template: xtee-misp2-base/sk_certificate_update_confirm
+Template: shared/xtee-misp2/international_installation_requested
 Type: boolean
-Default: false
-Description: Do you want to install SK certificates for Mobiili-ID?
- Estonian users need to update SK certificates from time to time. 
- Here is asked confirmation to do it during MISP2 installation.
- These SK certificates are also set up for Mobiili-ID authentication use.
+Default: true
+Description: Configure international version instead of Estonian?
+ For Estonian users SK-provided root certificates are needed. 
+ The certificates are set up for Mobile-ID authentication use.
+ Also predefined set of UI languages, X-Road instances etc.are included.
 
 Template: xtee-misp2-base/apache_ssl_config_exists
 Type: boolean
