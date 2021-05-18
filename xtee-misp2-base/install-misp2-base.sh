@@ -108,7 +108,6 @@ function configure_ajp_local_access_mod_jk_properties() {
     regex_apache_ajp_host_localhost='(\s*worker[.]ajp13_worker[.]host\s*)=\s*localhost'
     if grep -Eq "$regex_apache_ajp_host_localhost" "$workers_conf"; then
         perl -pi -e 's|'"$regex_apache_ajp_host_localhost"'|$1=127.0.0.1|g' "$workers_conf"
-        # echo "Configured Apache server AJP connection host to 127.0.0.1 in '$workers_conf'."
     fi
 
 }
@@ -122,10 +121,6 @@ function configure_ajp_local_access_tomcat_server_xml() {
         if ! (echo "$str_ajp_connector" | grep -Eq 'address\s*=\s*'); then
             perl -pi -e 's|'"$regex_ajp_connector"'|$1 address="127.0.0.1"$2|g' "$tomcat_server_xml"
             /usr/sbin/invoke-rc.d tomcat8 restart
-        else
-            # Message is not shown (directed to sink),
-            # but may serve a purpose while debugging with bash -x
-            echo "AJP address already configured." >> /dev/null
         fi
     else
         echo "WARNING: AJP connector not found from '$tomcat_server_xml'. Cannot configure local AJP access." >> /dev/stderr
@@ -271,8 +266,6 @@ fi
 configure_ajp_local_access_mod_jk_properties "${mod_jk_home}/workers.properties"
 configure_ajp_local_access_tomcat_server_xml "$catalina_base/conf/server.xml"
 
-#certs
-#echo "Updating certificate scripts... "
 
 arrange_apache_setup_utils_from_to $xrd_apache_home $apache2_misp2_home
 
@@ -322,5 +315,3 @@ fi
 c_rehash ./
 
 /usr/sbin/invoke-rc.d apache2 restart
-
-#echo "Successfully installed xtee-misp2-base package"
