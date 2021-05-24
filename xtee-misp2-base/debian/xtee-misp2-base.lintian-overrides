@@ -1,0 +1,6 @@
+xtee-misp2-base: debconf-is-not-a-registry usr/xtee/apache2/install-misp2-base.sh
+xtee-misp2-base: unused-debconf-template xtee-misp2-base/text_error_crl_update_failed
+xtee-misp2-base: unused-debconf-template xtee-misp2-base/text_error_pem_download_fail
+xtee-misp2-base: unused-debconf-template xtee-misp2-base/text_error_pem_format_fail
+xtee-misp2-base: unused-debconf-template xtee-misp2-base/text_error_tomcat_instance_not_found
+xtee-misp2-base: unused-debconf-template xtee-misp2-base/text_error_apache2_home_not_found

@@ -1,46 +1,23 @@
-#!/bin/bash -e 
+#!/bin/bash -e
 
 set -e
-
+#set -xv
 # Source debconf library.
+if [[  -e /usr/share/debconf/confmodule ]] ; then 
 . /usr/share/debconf/confmodule
+fi
 
-xrd_prefix=/usr/xtee
-tomcat_home=/var/lib/tomcat8 
-tomcat_share_home=/usr/share/tomcat8
 apache2_home=/etc/apache2
 
 config_operation="$1"
-previous_version="$2"
 
-if [$config_operation == "configure"] || [$config_operation == "reconfigure"]
-then
-
-    if [ ! -d $tomcat_home ]
-    then
-        #echo "$tomcat_home is not found"
-        db_input critical xtee-misp2-base/no_installation_home_found || true
-        db_subst xtee-misp2-base/no_installation_home_found APP "tomcat"  || true
-        db_subst xtee-misp2-base/no_installation_home_found APP_HOME "${tomcat_home}" || true
-        db_go || true
-        exit 1
-    fi
-
-    if [ ! -d $apache2_home ]
-    then
-        echo "$apache2_home is not found" >> /dev/stderr
-        exit 1
-    fi
-
-    if [ -f $apache2_home/sites-available/ssl.conf ]
-    then
-        # echo -n "Do you want to overwrite Apache2 configuration with default settings? [y/n] [default: n]: "
+if [ "$config_operation" == "configure" ] || [ "$config_operation" == "reconfigure" ]; then
+    if [ -f $apache2_home/sites-available/ssl.conf ]; then
+        db_set xtee-misp2-base/apache_ssl_config_exists true
         db_input medium xtee-misp2-base/apache2_overwrite_confirmation || true
     fi
-    
-    db_input medium xtee-misp2-base/sk_certificate_update_confirm || true
-    db_go || true
-
-    
+    db_input medium  shared/xtee-misp2/international_installation_requested || true
+    # shellcheck disable=SC2119 # no parameter is intended to be passed
+    db_go  || true
 fi
 db_stop
