@@ -1,3 +1,11 @@
+xtee-misp2-base (2.6.0) stable; urgency=medium
+
+  * Installation streamlined
+  * Debian packaging improvements
+  * apt-get purge removes remnants of this package from /etc/apache
+ 
+ -- NIIS <info@niis.org>  Fri, 28 May 2021 16:37:00 +0300
+
 xtee-misp2-base (2.5.0) stable; urgency=medium
 
   * NIIS copyrights now

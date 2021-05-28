@@ -1,3 +1,18 @@
+xtee-misp2-application (2.6.0) stable; urgency=medium
+
+  * Installation streamlined, less questions asked.
+  * apt-get purge removes misp2 remnants from 
+    /var/lib/tomcat8/webapps, too
+  * Preliminary capability to run on Java 11, 
+    not supported yet.
+  * Continued Java 8 support with AdoptOpenJDK 8.0
+  * Library versions updated
+  * Support for browser keygen-tag -based 
+    authentication certificate dropped
+  * Bug fixes
+ 
+ -- NIIS <info@niis.org>  Fri, 28 May 2021 16:34:46 +0300
+
 xtee-misp2-application (2.5.0) stable; urgency=medium
 
   * NIIS copyrights now
