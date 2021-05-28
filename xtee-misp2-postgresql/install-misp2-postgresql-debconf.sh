@@ -380,6 +380,12 @@ else
     		version="2.5.0"
     fi
 
+	if [ "$version" == "2.5.0" ]
+    	then
+		# TODO!!!!  change to real 2.6.0 after trial!
+    		version="2.5.1"
+    fi
+
 	# Substitute schema name in alter scripts
 	perl -pi -e "s/<misp2_schema>/$schema_name/g" $workdir/tmp.alter.sql
 	
