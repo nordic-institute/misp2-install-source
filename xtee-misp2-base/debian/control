@@ -1,11 +1,16 @@
 Source: xtee-misp2-base
-Section: unknown
+Section: contrib/web
 Priority: optional
 Maintainer: NIIS <info@niis.org>
-Build-Depends: debhelper (>= 4.0.0)
+Build-Depends: debhelper (>= 11.0.0)
 Standards-Version: 3.6.1
 
 Package: xtee-misp2-base
 Architecture: amd64
-Depends: apache2, libapache2-mod-jk, perl, openjdk-8-jre-headless, tomcat8, debconf (>= 0.2.17)
-Description: Apache Tomcat and Apache2 interconnectivity package for MISP2 application use
+Depends: ${misc:Depends}, apache2, libapache2-mod-jk, perl, openjdk-8-jre-headless | adoptopenjdk-8-hotspot-jre, tomcat8
+Description: Apache Tomcat and Apache2 setup package for MISP2 application use
+ This package creates needed basic settings for Apache2 and Tomcat needed 
+ by MISP2 application package. Settings include self-signed HTTPS server 
+ certificates and downloading of EStonian ID-card and Mobile-ID 
+ security certificates
+

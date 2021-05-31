@@ -12,7 +12,7 @@ Description: Postgresql database webapp uses:
 
 Template: xtee-misp2-postgresql/webapp_jdbc_password
 Type: password
-Default: changeit
+Default: secret
 Description: Postgresql database connection password for webapp database:
  What is the password for the webapp database connection?
 
