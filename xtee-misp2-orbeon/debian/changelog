@@ -1,7 +1,20 @@
 xtee-misp2-orbeon (2.6.0) stable; urgency=medium
 
-  * apt-get purge removes all traces of this 
-    package from /var/lib/tomcat8/webapps
+  * MISPDEV-21	Updated apt-get purge to remove MISP2 files from Tomcat webapp folder and Apache settings folder
+  * MISPDEV-70	Added instructions for using AdoptOpenJDK8 instead of the unsupported OpenJDK8
+  * MISPDEV-8	3rd party libraries were reviewed and updated to the latest versions
+  * MISPDEV-35	Updated “javax.servlet:javax.servlet-api” library to the latest version
+  * MISPDEV-31	Updated MISP2 application source code to comply with Maven directory standard
+  * MISPDEV-40	Deprecated custom DigiDocServlet implementation
+  * MISPDEV-53	Refactored “install-misp2-base.sh” post-install script
+  * MISPDEV-54	Refactored “install-misp2-orbeon.sh” post-install script
+  * MISPDEV-51	Refactored “install-misp2-application.sh” post-install script
+  * MISPDEV-45	Removed support for deprecated HTML keygen tag-based certificate authentication
+  * MISPDEV-65	Fixed SonarQube BLOCKER level security vulnerabilities
+  * MISPDEV-34	Updated “ee.sk.mid:mid-rest-java-client” library
+  * MISPDEV-60	Added experimental support for Java 11 runtime
+  * MISPDEV-64	Replaced “javax.xml.soap.*” classes with Jakarta XML Web services implementation to get MISP2 running on Java 11 runtime
+  * MISPDEV-55	Improved Debian packaging conformity for “misp2-base” package
 
  -- NIIS <info@niis.org>  Fri, 28 May 2021 16:37:38 +0300
 
