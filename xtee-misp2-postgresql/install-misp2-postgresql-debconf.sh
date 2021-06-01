@@ -24,7 +24,7 @@ pgsql_default_port=5432
 pgsql_default_dbname=misp2db
 pgsql_dir=/usr/lib/postgresql/10/bin
 pgsql_conf_dir=/etc/postgresql/10/main
-current_version="2.5.0"
+current_version="2.6.0"
 
 
 error_prefix="\e[1m\e[91mERROR!\e[0m"
@@ -378,6 +378,11 @@ else
 	if [ "$version" == "2.2.5" ]
     	then
     		version="2.5.0"
+    fi
+
+	if [ "$version" == "2.5.0" ]
+    	then
+    		version="2.6.0"
     fi
 
 	# Substitute schema name in alter scripts
