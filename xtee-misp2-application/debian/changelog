@@ -1,3 +1,9 @@
+xtee-misp2-application (2.6.1) stable; urgency=medium
+
+  * Bump Log4J2 to 2.15.0 to resolve CVE-2021-44228
+
+ -- NIIS <info@niis.org>  Mon, 13 Dec 2021 09:38:52 +0200
+
 xtee-misp2-application (2.6.0) stable; urgency=medium
 
   * MISPDEV-21	Updated apt-get purge to remove MISP2 files from Tomcat webapp folder and Apache settings folder
