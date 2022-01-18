@@ -1,3 +1,9 @@
+xtee-misp2-base (2.6.3) stable; urgency=medium
+
+  * Bump Log4J2 to 2.17.1 to resolve CVE-2021-44832
+
+ -- NIIS <info@niis.org>  Tue, 18 Jan 2022 13:49:45 +0200
+
 xtee-misp2-base (2.6.2) stable; urgency=medium
 
   * Bump Log4J2 to 2.16.0 to resolve CVE-2021-45046
