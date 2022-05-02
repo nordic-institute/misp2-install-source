@@ -1,3 +1,9 @@
+xtee-misp2-base (2.6.4) stable; urgency=medium
+
+  * Bump Struts to 2.5.30 to resolve CVE-2021-31805
+
+ -- NIIS <info@niis.org>  Thu, 14 Apr 2022 11:13:06 +0300
+
 xtee-misp2-base (2.6.3) stable; urgency=medium
 
   * Bump Log4J2 to 2.17.1 to resolve CVE-2021-44832
